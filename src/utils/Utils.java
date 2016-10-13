@@ -13,13 +13,36 @@ import core.Main;
 
 public class Utils {
 
-	public static Data loadData(String dataFilename) {
+	public static Data loadData(String dataFilename, double validationSetSize, boolean shuffleValidationSplit) {
 		double[][] trainingData = Utils.readData(dataFilename + "_training.txt");
 		double[][] unseenData = Utils.readData(dataFilename + "_unseen.txt");
-		if (Main.VALIDATION_SET_SIZE > 0){
-			int cutoff = (int)Math.floor(trainingData.length*(1-Main.VALIDATION_SET_SIZE));
-			double[][] trainingNewData = Arrays.copyOfRange(trainingData, 0, cutoff);
-			double[][] validationData = Arrays.copyOfRange(trainingData, cutoff, trainingData.length);
+		if (validationSetSize > 0){
+			int numTrainInstances = (int)Math.floor(trainingData.length*(1-validationSetSize));
+			double[][] trainingNewData, validationData;
+			if (!shuffleValidationSplit){
+				trainingNewData = Arrays.copyOfRange(trainingData, 0, numTrainInstances);
+				validationData = Arrays.copyOfRange(trainingData, numTrainInstances, trainingData.length);
+			} else {
+				int tindx = 0;
+				int vindx = 0;
+				trainingNewData = new double[numTrainInstances][trainingData[0].length];
+				validationData  = new double[trainingData.length-numTrainInstances][trainingData[0].length];
+				for (int i = 0; i < trainingData.length; i++){
+					if (tindx == numTrainInstances){
+						validationData[vindx] = trainingData[i];
+						vindx++;		
+					} else if (vindx == trainingData.length-numTrainInstances){
+						trainingNewData[tindx] = trainingData[i];
+						tindx++;		
+					} else if (Math.random() > 0.5){
+						trainingNewData[tindx] = trainingData[i];
+						tindx++;
+					} else{
+						validationData[vindx] = trainingData[i];
+						vindx++;						
+					}
+				}
+			}
 			System.out.println("\tSplit original trainingset (" + trainingData.length + " instances) into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
 			return new Data(trainingNewData, validationData, unseenData);
 		}
@@ -106,6 +129,9 @@ public class Utils {
 							break;
 						case "overfit_by_median":
 							Main.OVERFIT_BY_MEDIAN = (Integer.parseInt(parts[1]) == 1);
+							break;
+						case "shuffle_validation_split":
+							Main.SHUFFLE_VALIDATION_SPLIT = (Integer.parseInt(parts[1]) == 1);
 							break;
 					} 
 				} catch (Exception e){
