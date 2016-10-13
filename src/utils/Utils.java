@@ -80,6 +80,24 @@ public class Utils {
 						case "print_at_each_generation":
 							Main.PRINT_AT_EACH_GENERATION = (Integer.parseInt(parts[1]) == 1);
 							break;
+						case "validation_set_size":
+							Main.VALIDATION_SET_SIZE = Double.parseDouble(parts[1]);
+							break;
+						case "repulsor_min_age":
+							Main.REPULSOR_MIN_AGE = Integer.parseInt(parts[1]);
+							break;
+						case "semantic_repulsor_max_number":
+							Main.SEMANTIC_REPULSOR_MAX_NUMBER = Integer.parseInt(parts[1]);
+							break;
+						case "validation_elite_size":
+							Main.VALIDATION_ELITE_SIZE = Integer.parseInt(parts[1]);
+							break;
+						case "use_only_best_as_rep_candidate":
+							Main.USE_ONLY_BEST_AS_REP_CANDIDATE = (Integer.parseInt(parts[1]) == 1);
+							break;
+						case "overfit_by_median":
+							Main.OVERFIT_BY_MEDIAN = (Integer.parseInt(parts[1]) == 1);
+							break;
 					} 
 				} catch (Exception e){
 					System.out.println("Failed reading configuration: " + line);

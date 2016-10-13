@@ -18,6 +18,13 @@ public class Main {
 	public static double CROSSOVER_PROBABILITY = 0.9;
 	public static boolean PRINT_AT_EACH_GENERATION = true;
 
+	// repulsor parameters
+	public static double VALIDATION_SET_SIZE = 0.2;
+	public static int REPULSOR_MIN_AGE = 10;
+	public static int SEMANTIC_REPULSOR_MAX_NUMBER = 50;
+	public static boolean USE_ONLY_BEST_AS_REP_CANDIDATE = true;
+	public static boolean OVERFIT_BY_MEDIAN = true;
+
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
 		// load configuration file
