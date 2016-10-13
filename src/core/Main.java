@@ -28,17 +28,22 @@ public class Main {
 
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
+
+		System.out.println("\nStarting Setup Phase");
+
 		// load configuration file
 		parseArguments(args);
 
 		// load training and unseen data
 		Data data = Utils.loadData(DATA_FILENAME);
 
+		System.out.println("Finished Setup Phase\n");
+		System.out.println("Starting Evolution");
 
 		// run GP for a given number of runs
 		double[][] resultsPerRun = new double[6][NUMBER_OF_RUNS];
 		for (int i = 0; i < NUMBER_OF_RUNS; i++) {
-			System.out.printf("\n\t\t##### Run %d #####\n", i + 1);
+			System.out.printf("\tRun %d\n", i + 1);
 			GpRun gp = new GpRun(data);
 			// GsgpRun gp = new GsgpRun(data);
 
@@ -63,20 +68,22 @@ public class Main {
 			resultsPerRun[3][i] = bestFound.getSize();
 			resultsPerRun[4][i] = bestFound.getDepth();
 			resultsPerRun[5][i] = gp.getPopulation().getRepulsorsSize();
-			System.out.print("\nBest =>");
+			System.out.print("\n\t\tBest =>");
 			bestFound.print();
 			System.out.println();
 		}
 
 		// present average results
-		System.out.printf("\n\t\t##### AVERAGE results after "+NUMBER_OF_RUNS+" runs ("+NUMBER_OF_GENERATIONS+" Generations) #####\n\n");
-		System.out.println("Training Error   \tValidation Error \tTest Error      \tSize\tDepth\t#Repulsors");
-		System.out.println(""+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+
+		System.out.printf("\n\tAVERAGE results after "+NUMBER_OF_RUNS+" runs ("+NUMBER_OF_GENERATIONS+" Generations)\n");
+		System.out.println("\t\tRuns\tTraining Error   \tValidation Error \tTest Error      \tSize\tDepth\t#Repulsors");
+		System.out.println("\t\t"+NUMBER_OF_RUNS+"\t"+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+
 			"\t"+Utils.getAverage(resultsPerRun[2])+"\t"+Utils.getAverage(resultsPerRun[3])+
 			"\t"+Utils.getAverage(resultsPerRun[4])+"\t"+Utils.getAverage(resultsPerRun[5]));
 
+		System.out.println("Finished Evolution\n");
+
 		Long endTime = System.currentTimeMillis();
-		System.out.println("\nFinished after " + ((double)(endTime-startTime))/1000 + "s");
+		System.out.println("Finished after " + ((double)(endTime-startTime))/1000 + "s");
 	}
 
 

@@ -20,7 +20,7 @@ public class Utils {
 			int cutoff = (int)Math.floor(trainingData.length*(1-Main.VALIDATION_SET_SIZE));
 			double[][] trainingNewData = Arrays.copyOfRange(trainingData, 0, cutoff);
 			double[][] validationData = Arrays.copyOfRange(trainingData, cutoff, trainingData.length);
-			System.out.println("Split original trainingset (" + trainingData.length + " instances) into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
+			System.out.println("\tSplit original trainingset (" + trainingData.length + " instances) into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
 			return new Data(trainingNewData, validationData, unseenData);
 		}
 		return new Data(trainingData, unseenData);
@@ -55,7 +55,7 @@ public class Utils {
 
 	public static void readConfigFile(String configFile){
 		try {
-			System.out.println("Reading Configuration: " + configFile);
+			System.out.println("\tReading Configuration: " + configFile);
 			BufferedReader inputBuffer = new BufferedReader(new FileReader(configFile));
 			String line = inputBuffer.readLine();
 			while (line != null) {
@@ -109,9 +109,9 @@ public class Utils {
 							break;
 					} 
 				} catch (Exception e){
-					System.out.println("Failed reading configuration: " + line);
+					System.out.println("\t\tERROR: Failed reading configuration: " + line);
 				}
-				System.out.println("\t"+line);
+				System.out.println("\t\t"+line);
 				line = inputBuffer.readLine();
 			}
 			inputBuffer.close();

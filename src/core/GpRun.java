@@ -88,7 +88,7 @@ public class GpRun implements Serializable {
 
 		updateCurrentBest();
 
-		System.out.println("Gen\tTraining Error   \tValidation Error \tTest Error      \tSize\tDepth\tRank\t#Repulsors");
+		System.out.println("\t\tGen\tTraining Error   \tValidation Error \tTest Error      \tSize\tDepth\tRank\t#Repulsors");
 		printState();
 
 		currentGeneration++;
@@ -226,7 +226,7 @@ public class GpRun implements Serializable {
 
 	protected void printState() {
 		if (printAtEachGeneration) {
-			System.out.println(""+currentGeneration+"\t"+currentBest.getTrainingError()+"\t"+currentBest.getValidationError()
+			System.out.println("\t\t"+currentGeneration+"\t"+currentBest.getTrainingError()+"\t"+currentBest.getValidationError()
 				+"\t"+currentBest.getUnseenError()+"\t"+currentBest.getSize()
 				+"\t"+currentBest.getDepth() + "\t"+currentBest.getRank() + "\t"+population.getRepulsorsSize());
 		}
