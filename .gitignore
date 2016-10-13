@@ -2,3 +2,5 @@
 *.ini
 *.txt
 *.log
+*.jar
+*.sh

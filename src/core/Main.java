@@ -69,7 +69,9 @@ public class Main {
 		System.out.println("\nFinished after " + ((double)(endTime-startTime))/1000 + "s");
 	}
 
+
 	public static void parseArguments(String[] args){
+		boolean isConfigured = false;
 		int i = 0;
 		try {
 			while (i < args.length){
@@ -77,6 +79,7 @@ public class Main {
 					case "-config":
 						i++;
 						Utils.readConfigFile(args[i]);
+						isConfigured = true;
 						break;
 					case "-aid":
 						i++;
@@ -87,6 +90,11 @@ public class Main {
 			}
 		} catch(Exception e){
 			System.out.println("ERROR: Failed parsing arguments.");
+		}
+		if (!isConfigured){
+			System.out.println("WARNING: Running without the use of argument '-config <path to confguration file>', consider using 'java -jar GP.jar -config <path>' to gain controll over the parameters.\n");
+			System.out.println("The following can be used (and is default) as a configuration(.ini) file:");
+			System.out.println("number_of_generations=6\nnumber_of_runs=2\ndata_filename=dataset\npopulation_size=100\napply_depth_limit=1\nmaximum_depth=17\nmaximum_initial_depth=6\ncrossover_probability=0.9\nprint_at_each_generation=1");
 		}
 	}
 }
