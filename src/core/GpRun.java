@@ -26,11 +26,17 @@ public class GpRun implements Serializable {
 	protected int maximumInitialDepth = 6;
 	protected double crossoverProbability = 0.9;
 	protected boolean printAtEachGeneration = true;
+	protected int validationEliteSize = 10;
+	protected int repulsorMinAge = 10;
+	protected int repulsorMaxNumber = 25;
+	protected boolean useOnlyBestAsRepCandidate = true;
+	protected boolean overfitByMedian = true;
 
 	// ##### state #####
 	protected Random randomGenerator;
 	protected int currentGeneration;
 	protected Population population;
+	protected Population validationElite;
 	protected Individual currentBest;
 
 	public GpRun(Data data) {
@@ -71,10 +77,13 @@ public class GpRun implements Serializable {
 		randomGenerator = new Random();
 		currentGeneration = 0;
 
+		validationElite = new Population();
+
 		// initialize and evaluate population
 		rampedHalfAndHalfInitialization();
 		for (int i = 0; i < populationSize; i++) {
 			population.getIndividual(i).evaluate(data);
+			tryAddToValidationElite(population.getIndividual(i));
 		}
 
 		updateCurrentBest();
@@ -163,6 +172,8 @@ public class GpRun implements Serializable {
 		// evolve for a given number of generations
 		while (currentGeneration <= numberOfGenerations) {
 			Population offspring = new Population();
+			if (currentGeneration >= repulsorMinAge)
+				offspring.repulsors = population.repulsors;
 
 			// generate a new offspring population
 			while (offspring.getSize() < population.getSize()) {
@@ -189,10 +200,25 @@ public class GpRun implements Serializable {
 					newIndividual.evaluate(data);
 				}
 				offspring.addIndividual(newIndividual);
+				tryAddToValidationElite(newIndividual);
+				if (!useOnlyBestAsRepCandidate && isOverfitting(newIndividual)){
+					offspring.repulsors.add(newIndividual.getTrainingDataOutputs());
+					if (offspring.repulsors.size() > repulsorMaxNumber)
+						offspring.repulsors = new ArrayList<double[]>(offspring.repulsors.subList(offspring.repulsors.size()-repulsorMaxNumber, offspring.repulsors.size()));
+					// System.out.println("Added new repulsor (using only best = false), total of " + offspring.repulsors.size() + " ("+repulsorMaxNumber+").");
+				}
 			}
 
 			population = selectSurvivors(offspring);
+			population.repulsors = offspring.repulsors;
+			population.nsgaIISort(); // calculate ranks of new population
 			updateCurrentBest();
+			if (useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
+				population.repulsors.add(currentBest.getTrainingDataOutputs());
+				if (population.repulsors.size() > repulsorMaxNumber)
+					population.repulsors = new ArrayList<double[]>(population.repulsors.subList(population.repulsors.size()-repulsorMaxNumber, population.repulsors.size()));
+				// System.out.println("Added new repulsor (using only best = true), total of " + population.repulsors.size() + " ("+repulsorMaxNumber+").");
+			}
 			printState();
 			currentGeneration++;
 		}
@@ -202,7 +228,7 @@ public class GpRun implements Serializable {
 		if (printAtEachGeneration) {
 			System.out.println(""+currentGeneration+"\t"+currentBest.getTrainingError()+"\t"+currentBest.getValidationError()
 				+"\t"+currentBest.getUnseenError()+"\t"+currentBest.getSize()
-				+"\t"+currentBest.getDepth() + "\t"+currentBest.getRank());
+				+"\t"+currentBest.getDepth() + "\t"+currentBest.getRank() + "\t"+population.getRepulsorsSize());
 		}
 	}
 
@@ -214,7 +240,7 @@ public class GpRun implements Serializable {
 			int index = randomGenerator.nextInt(population.getSize());
 			tournamentPopulation.addIndividual(population.getIndividual(index));
 		}
-		return tournamentPopulation.getBest();
+		return tournamentPopulation.getNonDominatedBest();
 	}
 
 	protected Individual applyStandardCrossover(Individual p1, Individual p2) {
@@ -278,6 +304,28 @@ public class GpRun implements Serializable {
 
 	protected void updateCurrentBest() {
 		currentBest = population.getBest();
+	}
+
+	protected void tryAddToValidationElite(Individual individual){
+		if (validationElite.getSize() < validationEliteSize){
+			validationElite.addIndividual(individual);
+		} else {
+			int worstIdx = validationElite.getWorstIndex("validation");
+			if (individual.getValidationError() < validationElite.getIndividual(worstIdx).getValidationError()){
+				validationElite.removeIndividual(worstIdx);
+				validationElite.addIndividual(individual);
+			}
+		}
+	}
+
+	protected boolean isOverfitting(Individual individual){
+		if (validationElite.getSize() < validationEliteSize)
+			return false;
+		else if (overfitByMedian)
+			return individual.getValidationError() > validationElite.getMedianFitness("validation");
+		else
+			return individual.getValidationError() > validationElite.getAverageFitness("validation");
+
 	}
 
 	// ##### get's and set's from here on #####
@@ -372,5 +420,25 @@ public class GpRun implements Serializable {
 
 	public void setPopulationSize(int populationSize) {
 		this.populationSize = populationSize;
+	}
+
+	public void setRepulsorMinAge(int age) {
+		this.repulsorMinAge = age;
+	}
+
+	public void setRepulsorMaxNumber(int num) {
+		this.repulsorMaxNumber = num;
+	}
+
+	public void setValidationEliteSize(int size) {
+		this.validationEliteSize = size;
+	}
+	
+	public void setUseOnlyBestAsRepCandidate(boolean flag) {
+		this.useOnlyBestAsRepCandidate = flag;
+	}
+
+	public void setOverfitByMedian(boolean flag) {
+		this.overfitByMedian = flag;
 	}
 }

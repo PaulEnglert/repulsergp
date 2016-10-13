@@ -155,6 +155,14 @@ public class Individual implements Serializable {
 		}
 	}
 
+	public double calculateTrainingSemanticDistance(double[] dataPoint){
+		double d = 0;
+		for (int i = 0; i < this.trainingDataOutputs.length; i++){
+			d += (dataPoint[i]-this.trainingDataOutputs[i])*(dataPoint[i]-this.trainingDataOutputs[i]);
+		}
+		return Math.sqrt(d / this.trainingDataOutputs.length);
+	}
+
 	public int countElementsToEnd(int startingIndex) {
 		if (program.get(startingIndex) instanceof Terminal) {
 			return 1;

@@ -36,7 +36,7 @@ public class Main {
 
 
 		// run GP for a given number of runs
-		double[][] resultsPerRun = new double[5][NUMBER_OF_RUNS];
+		double[][] resultsPerRun = new double[6][NUMBER_OF_RUNS];
 		for (int i = 0; i < NUMBER_OF_RUNS; i++) {
 			System.out.printf("\n\t\t##### Run %d #####\n", i + 1);
 			GpRun gp = new GpRun(data);
@@ -49,6 +49,11 @@ public class Main {
 			gp.setMaximumInitialDepth(MAXIMUM_INITIAL_DEPTH);
 			gp.setCrossoverProbability(CROSSOVER_PROBABILITY);
 			gp.setPrintAtEachGeneration(PRINT_AT_EACH_GENERATION);
+			gp.setRepulsorMinAge(REPULSOR_MIN_AGE);
+			gp.setRepulsorMaxNumber(SEMANTIC_REPULSOR_MAX_NUMBER);
+			gp.setValidationEliteSize(VALIDATION_ELITE_SIZE);
+			gp.setUseOnlyBestAsRepCandidate(USE_ONLY_BEST_AS_REP_CANDIDATE);
+			gp.setOverfitByMedian(OVERFIT_BY_MEDIAN);
 
 			gp.evolve(NUMBER_OF_GENERATIONS);
 			Individual bestFound = gp.getCurrentBest();
@@ -57,6 +62,7 @@ public class Main {
 			resultsPerRun[2][i] = bestFound.getUnseenError();
 			resultsPerRun[3][i] = bestFound.getSize();
 			resultsPerRun[4][i] = bestFound.getDepth();
+			resultsPerRun[5][i] = gp.getPopulation().getRepulsorsSize();
 			System.out.print("\nBest =>");
 			bestFound.print();
 			System.out.println();
@@ -67,7 +73,7 @@ public class Main {
 		System.out.println("Training Error   \tValidation Error \tTest Error      \tSize\tDepth\t#Repulsors");
 		System.out.println(""+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+
 			"\t"+Utils.getAverage(resultsPerRun[2])+"\t"+Utils.getAverage(resultsPerRun[3])+
-			"\t"+Utils.getAverage(resultsPerRun[4]));
+			"\t"+Utils.getAverage(resultsPerRun[4])+"\t"+Utils.getAverage(resultsPerRun[5]));
 
 		Long endTime = System.currentTimeMillis();
 		System.out.println("\nFinished after " + ((double)(endTime-startTime))/1000 + "s");
