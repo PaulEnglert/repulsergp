@@ -22,6 +22,7 @@ public class Main {
 	public static double VALIDATION_SET_SIZE = 0.2;
 	public static int REPULSOR_MIN_AGE = 10;
 	public static int SEMANTIC_REPULSOR_MAX_NUMBER = 50;
+	public static int VALIDATION_ELITE_SIZE = 50;
 	public static boolean USE_ONLY_BEST_AS_REP_CANDIDATE = true;
 	public static boolean OVERFIT_BY_MEDIAN = true;
 
