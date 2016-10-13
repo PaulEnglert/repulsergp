@@ -36,7 +36,7 @@ public class Main {
 
 
 		// run GP for a given number of runs
-		double[][] resultsPerRun = new double[4][NUMBER_OF_RUNS];
+		double[][] resultsPerRun = new double[5][NUMBER_OF_RUNS];
 		for (int i = 0; i < NUMBER_OF_RUNS; i++) {
 			System.out.printf("\n\t\t##### Run %d #####\n", i + 1);
 			GpRun gp = new GpRun(data);
@@ -53,9 +53,10 @@ public class Main {
 			gp.evolve(NUMBER_OF_GENERATIONS);
 			Individual bestFound = gp.getCurrentBest();
 			resultsPerRun[0][i] = bestFound.getTrainingError();
-			resultsPerRun[1][i] = bestFound.getUnseenError();
-			resultsPerRun[2][i] = bestFound.getSize();
-			resultsPerRun[3][i] = bestFound.getDepth();
+			resultsPerRun[1][i] = bestFound.getValidationError();
+			resultsPerRun[2][i] = bestFound.getUnseenError();
+			resultsPerRun[3][i] = bestFound.getSize();
+			resultsPerRun[4][i] = bestFound.getDepth();
 			System.out.print("\nBest =>");
 			bestFound.print();
 			System.out.println();
@@ -63,8 +64,10 @@ public class Main {
 
 		// present average results
 		System.out.printf("\n\t\t##### AVERAGE results after "+NUMBER_OF_RUNS+" runs ("+NUMBER_OF_GENERATIONS+" Generations) #####\n\n");
-		System.out.println("Training Error   \tTest Error      \tSize\tDepth");
-		System.out.println(""+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+"\t"+Utils.getAverage(resultsPerRun[2])+"\t"+Utils.getAverage(resultsPerRun[3]));
+		System.out.println("Training Error   \tValidation Error \tTest Error      \tSize\tDepth\t#Repulsors");
+		System.out.println(""+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+
+			"\t"+Utils.getAverage(resultsPerRun[2])+"\t"+Utils.getAverage(resultsPerRun[3])+
+			"\t"+Utils.getAverage(resultsPerRun[4]));
 
 		Long endTime = System.currentTimeMillis();
 		System.out.println("\nFinished after " + ((double)(endTime-startTime))/1000 + "s");

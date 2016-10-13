@@ -18,8 +18,9 @@ public class Individual implements Serializable {
 	protected long id;
 	protected ArrayList<ProgramElement> program;
 	protected int depth;
-	protected double trainingError, unseenError;
-	protected double[] trainingDataOutputs, unseenDataOutputs;
+	protected int nsga_II_rank;
+	protected double trainingError, validationError, unseenError;
+	protected double[] trainingDataOutputs, validationDataOutputs, unseenDataOutputs;
 
 	protected int evaluateIndex;
 	protected int maximumDepthAchieved;
@@ -31,6 +32,7 @@ public class Individual implements Serializable {
 
 	public Individual() {
 		program = new ArrayList<ProgramElement>();
+		nsga_II_rank = 0;
 		id = getNextId();
 	}
 
@@ -40,6 +42,7 @@ public class Individual implements Serializable {
 
 	public void evaluate(Data data) {
 		evaluateOnTrainingData(data);
+		evaluateOnValidationData(data);
 		evaluateOnUnseenData(data);
 	}
 
@@ -50,6 +53,19 @@ public class Individual implements Serializable {
 		}
 		trainingError = calculateRMSE(trainingData, trainingDataOutputs);
 		return trainingDataOutputs;
+	}
+
+	public double[] evaluateOnValidationData(Data data) {
+		double[][] validationData = data.getValidationData();
+		if (validationData == null){
+			validationError = Double.NaN;
+			return null;
+		}
+		if (sizeOverride == false) {
+			validationDataOutputs = evaluate(validationData);
+		}
+		validationError = calculateRMSE(validationData, validationDataOutputs);
+		return validationDataOutputs;
 	}
 
 	public double[] evaluateOnUnseenData(Data data) {
@@ -202,12 +218,20 @@ public class Individual implements Serializable {
 		return trainingError;
 	}
 
+	public double getValidationError() {
+		return validationError;
+	}
+
 	public double getUnseenError() {
 		return unseenError;
 	}
 
 	public double[] getTrainingDataOutputs() {
 		return trainingDataOutputs;
+	}
+
+	public double[] getValidationDataOutputs() {
+		return validationDataOutputs;
 	}
 
 	public double[] getUnseenDataOutputs() {
@@ -230,6 +254,10 @@ public class Individual implements Serializable {
 		return depth;
 	}
 
+	public int getRank() {
+		return nsga_II_rank;
+	}
+
 	public ArrayList<ProgramElement> getProgram() {
 		return program;
 	}
@@ -246,8 +274,16 @@ public class Individual implements Serializable {
 		this.depth = depth;
 	}
 
+	public void setRank(int rank) {
+		this.nsga_II_rank = rank;
+	}
+
 	public void setTrainingDataOutputs(double[] trainingDataOutputs) {
 		this.trainingDataOutputs = trainingDataOutputs;
+	}
+
+	public void setValidationDataOutputs(double[] validationDataOutputs) {
+		this.validationDataOutputs = validationDataOutputs;
 	}
 
 	public void setUnseenDataOutputs(double[] unseenDataOutputs) {
