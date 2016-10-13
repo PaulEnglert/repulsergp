@@ -3,8 +3,10 @@ package utils;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.lang.Math;
 
 import core.Data;
 import core.Main;
@@ -14,6 +16,13 @@ public class Utils {
 	public static Data loadData(String dataFilename) {
 		double[][] trainingData = Utils.readData(dataFilename + "_training.txt");
 		double[][] unseenData = Utils.readData(dataFilename + "_unseen.txt");
+		if (Main.VALIDATION_SET_SIZE > 0){
+			int cutoff = (int)Math.floor(trainingData.length*(1-Main.VALIDATION_SET_SIZE));
+			double[][] trainingNewData = Arrays.copyOfRange(trainingData, 0, cutoff);
+			double[][] validationData = Arrays.copyOfRange(trainingData, cutoff, trainingData.length);
+			System.out.println("Split original trainingset (" + trainingData.length + " instances) into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
+			return new Data(trainingNewData, validationData, unseenData);
+		}
 		return new Data(trainingData, unseenData);
 	}
 
