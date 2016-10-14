@@ -19,7 +19,7 @@ public class GsgpRun extends GpRun {
 		super(data);
 	}
 
-	protected void initialize() {
+	public void initialize() {
 		super.initialize();
 		applyDepthLimit = false;
 		mutationStep = 1.0;

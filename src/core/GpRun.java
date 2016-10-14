@@ -41,10 +41,9 @@ public class GpRun implements Serializable {
 
 	public GpRun(Data data) {
 		this.data = data;
-		initialize();
 	}
 
-	protected void initialize() {
+	public void initialize() {
 
 		// adds all the functions to the function set
 		functionSet = new ArrayList<ProgramElement>();

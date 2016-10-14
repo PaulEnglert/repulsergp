@@ -61,6 +61,8 @@ public class Main {
 			gp.setUseOnlyBestAsRepCandidate(USE_ONLY_BEST_AS_REP_CANDIDATE);
 			gp.setOverfitByMedian(OVERFIT_BY_MEDIAN);
 
+			gp.initialize();
+
 			gp.evolve(NUMBER_OF_GENERATIONS);
 			Individual bestFound = gp.getCurrentBest();
 			resultsPerRun[0][i] = bestFound.getTrainingError();
