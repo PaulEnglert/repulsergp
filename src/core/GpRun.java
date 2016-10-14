@@ -235,6 +235,7 @@ public class GpRun implements Serializable {
 	protected Individual selectParent() {
 		Population tournamentPopulation = new Population();
 		int tournamentSize = (int) (0.05 * population.getSize());
+		if (tournamentSize == 0) tournamentSize = 1;
 		for (int i = 0; i < tournamentSize; i++) {
 			int index = randomGenerator.nextInt(population.getSize());
 			tournamentPopulation.addIndividual(population.getIndividual(index));

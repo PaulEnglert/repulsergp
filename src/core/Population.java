@@ -57,8 +57,9 @@ public class Population implements Serializable {
 
 	public int getWorstIndex(String dataname) {
 		int worstIndex = 0;
-		double worstError = individuals.get(worstIndex).getTrainingError();
-		for (int i = 1; i < individuals.size(); i++) {
+		double worstError = 0;
+		int i = 0;
+		do {
 			double f = 0;
 			if (dataname.equals("training")){
 				f = individuals.get(i).getTrainingError();
@@ -67,12 +68,12 @@ public class Population implements Serializable {
 			} else if (dataname.equals("test")){
 				f = individuals.get(i).getUnseenError();
 			}
-
-			if (f > worstError) {
+			if (i == 0 || f > worstError) {
 				worstError = f;
 				worstIndex = i;
 			}
-		}
+			i++;
+		} while (i < individuals.size());
 		return worstIndex;
 	}
 
