@@ -21,6 +21,7 @@ public class GpRun implements Serializable {
 	protected Data data;
 	protected ArrayList<ProgramElement> functionSet, terminalSet, fullSet;
 	protected int populationSize = 100;
+	protected int tournamentSize = 4;
 	protected boolean applyDepthLimit = true;
 	protected int maximumDepth = 17;
 	protected int maximumInitialDepth = 6;
@@ -234,7 +235,7 @@ public class GpRun implements Serializable {
 	// tournament selection
 	protected Individual selectParent() {
 		Population tournamentPopulation = new Population();
-		int tournamentSize = (int) (0.05 * population.getSize());
+		// int tournamentSize = (int) (0.05 * population.getSize());
 		if (tournamentSize == 0) tournamentSize = 1;
 		for (int i = 0; i < tournamentSize; i++) {
 			int index = randomGenerator.nextInt(population.getSize());
@@ -420,6 +421,10 @@ public class GpRun implements Serializable {
 
 	public void setPopulationSize(int populationSize) {
 		this.populationSize = populationSize;
+	}
+
+	public void setTournamentSize(int tournamentSize) {
+		this.tournamentSize = tournamentSize;
 	}
 
 	public void setRepulsorMinAge(int age) {

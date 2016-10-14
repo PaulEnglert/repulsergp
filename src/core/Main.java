@@ -12,6 +12,7 @@ public class Main {
 
 	// GP Parameters
 	public static int POPULATION_SIZE = 100;
+	public static int TOURNAMENT_SIZE = 100;
 	public static boolean APPLY_DEPTH_LIMIT = true;
 	public static int MAXIMUM_DEPTH = 17;
 	public static int MAXIMUM_INITIAL_DEPTH = 6;
@@ -50,6 +51,7 @@ public class Main {
 
 			// set parameters
 			gp.setPopulationSize(POPULATION_SIZE);
+			gp.setTournamentSize(TOURNAMENT_SIZE);
 			gp.setApplyDepthLimit(APPLY_DEPTH_LIMIT);
 			gp.setMaximumDepth(MAXIMUM_DEPTH);
 			gp.setMaximumInitialDepth(MAXIMUM_INITIAL_DEPTH);

@@ -133,6 +133,9 @@ public class Utils {
 						case "shuffle_validation_split":
 							Main.SHUFFLE_VALIDATION_SPLIT = (Integer.parseInt(parts[1]) == 1);
 							break;
+						case "tournament_size":
+							Main.TOURNAMENT_SIZE = Integer.parseInt(parts[1]);
+							break;
 					} 
 				} catch (Exception e){
 					System.out.println("\t\tERROR: Failed reading configuration: " + line);
