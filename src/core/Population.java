@@ -140,6 +140,28 @@ public class Population implements Serializable {
 		return individuals.get(index);
 	}
 
+	public boolean addRepulsor(double[] semantics) {
+		boolean add = true;
+		// add semantics if not already in list of repulsors
+		for (int r = 0; r < repulsors.size(); r++){
+			boolean same = true;
+			for (int d = 0; d<repulsors.get(r).length; d++){
+				if (semantics[d]!=repulsors.get(r)[d]){
+					same = false;
+					break;
+				}
+			}
+			if (same){
+				add = false;
+				break;
+			}
+
+		}
+		if (add)
+			repulsors.add(semantics);
+		return add;
+	}
+
 	public void nsgaIISort(){
 		// check if there are repulsors to work with
 		if (repulsors.size() == 0){

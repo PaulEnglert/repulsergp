@@ -229,13 +229,13 @@ public class GpRun implements Serializable {
 				offspring.addIndividual(newIndividual);
 				tryAddToValidationElite(newIndividual);
 				if ((currentGeneration >= repulsorMinAge) && !useOnlyBestAsRepCandidate && isOverfitting(newIndividual)){
-					newReps++;
-					offspring.repulsors.add(newIndividual.getTrainingDataOutputs());
-					if (offspring.repulsors.size() > repulsorMaxNumber){
-						offspring.lostRepulsors += offspring.repulsors.size()-repulsorMaxNumber;
-						offspring.repulsors = new ArrayList<double[]>(offspring.repulsors.subList(offspring.repulsors.size()-repulsorMaxNumber, offspring.repulsors.size()));
+					if (offspring.addRepulsor(newIndividual.getTrainingDataOutputs())){
+						newReps++;
+						if (offspring.repulsors.size() > repulsorMaxNumber){
+							offspring.lostRepulsors += offspring.repulsors.size()-repulsorMaxNumber;
+							offspring.repulsors = new ArrayList<double[]>(offspring.repulsors.subList(offspring.repulsors.size()-repulsorMaxNumber, offspring.repulsors.size()));
+						}
 					}
-					// System.out.println("Added new repulsor (using only best = false), total of " + offspring.repulsors.size() + " ("+repulsorMaxNumber+").");
 				}
 			}
 
@@ -244,13 +244,13 @@ public class GpRun implements Serializable {
 			population.nsgaIISort(); // calculate ranks of new population
 			updateCurrentBest();
 			if ((currentGeneration >= repulsorMinAge) && useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
-				newReps++;
-				population.repulsors.add(currentBest.getTrainingDataOutputs());
-				if (population.repulsors.size() > repulsorMaxNumber){
-					population.lostRepulsors += population.repulsors.size()-repulsorMaxNumber;
-					population.repulsors = new ArrayList<double[]>(population.repulsors.subList(population.repulsors.size()-repulsorMaxNumber, population.repulsors.size()));
+				if (population.addRepulsor(currentBest.getTrainingDataOutputs())){
+					newReps++;
+					if (population.repulsors.size() > repulsorMaxNumber){
+						population.lostRepulsors += population.repulsors.size()-repulsorMaxNumber;
+						population.repulsors = new ArrayList<double[]>(population.repulsors.subList(population.repulsors.size()-repulsorMaxNumber, population.repulsors.size()));
+					}
 				}
-				// System.out.println("Added new repulsor (using only best = true), total of " + population.repulsors.size() + " ("+repulsorMaxNumber+").");
 			}
 			Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added "+newReps+" new repulsor");
 			printState(prevRepCount);
