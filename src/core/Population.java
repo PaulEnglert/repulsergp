@@ -165,12 +165,27 @@ public class Population implements Serializable {
 				// determine domination of i over j, or vice versa based on fitness and all repulsor distances
 				boolean iDominatesJ = (individuals.get(i).getTrainingError() < individuals.get(j).getTrainingError());
 				boolean jDominatesI = !iDominatesJ;
+				boolean iIsRepulsor = false;
+				boolean jIsRepulsor = false;
 				for (int r = 0; r < repulsors.size(); r++){
 					double d_i = individuals.get(i).calculateTrainingSemanticDistance(repulsors.get(r));
+					if (d_i == 0)
+						iIsRepulsor = true;
 					double d_j = individuals.get(j).calculateTrainingSemanticDistance(repulsors.get(r));
+					if (d_j == 0)
+						jIsRepulsor = true;
 					iDominatesJ = (iDominatesJ && d_i > d_j);
 					jDominatesI = (jDominatesI && d_i < d_j);
 				}
+				// force domination if repulsor
+				if (iIsRepulsor && !jIsRepulsor){
+					iDominatesJ = false;
+					jDominatesI = true;
+				} else if (iIsRepulsor && jIsRepulsor){
+					iDominatesJ = false;
+					jDominatesI = false;
+				}
+				// update datastructures
 				if (iDominatesJ) // add j to set of dominated solutions of i
 					dInds.add(j);
 				else if (jDominatesI)    // increment count of times that i has been dominated
