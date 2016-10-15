@@ -2,6 +2,8 @@ package utils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +14,20 @@ import core.Data;
 import core.Main;
 
 public class Utils {
+	
+	public enum LogTag {
+	    SEMANTICS,
+	    FITNESSTEST,
+	    FITNESSTRAIN,
+	    FITNESSVALIDATION,
+	    LOG
+	}
+
+	private static PrintWriter fsSemantics = null;
+	private static PrintWriter fsFitnesstest = null;
+	private static PrintWriter fsFitnesstrain = null;
+	private static PrintWriter fsFitnessval = null;
+	private static PrintWriter fslog = null;
 
 	public static Data loadData(String dataFilename, double validationSetSize, boolean shuffleValidationSplit) {
 		double[][] trainingData = Utils.readData(dataFilename + "_training.txt");
@@ -70,7 +86,7 @@ public class Utils {
 
 	public static void readConfigFile(String configFile){
 		try {
-			System.out.println("\tReading Configuration: " + configFile);
+			log(LogTag.LOG, "Reading Configuration: " + configFile);
 			BufferedReader inputBuffer = new BufferedReader(new FileReader(configFile));
 			String line = inputBuffer.readLine();
 			while (line != null) {
@@ -128,11 +144,14 @@ public class Utils {
 						case "tournament_size":
 							Main.TOURNAMENT_SIZE = Integer.parseInt(parts[1]);
 							break;
+						case "log_semantics":
+							Main.LOG_SEMANTICS = (Integer.parseInt(parts[1]) == 1);
+							break;
 					} 
 				} catch (Exception e){
-					System.out.println("\t\tERROR: Failed reading configuration: " + line);
+					log(LogTag.LOG, "Failed reading configuration: " + line);
 				}
-				System.out.println("\t\t"+line);
+				log(LogTag.LOG, "\t"+line);
 				line = inputBuffer.readLine();
 			}
 			inputBuffer.close();
@@ -151,5 +170,99 @@ public class Utils {
 
 	public static double logisticFunction(double x) {
 		return 1.0 / (1.0 + Math.exp(-x));
+	}
+
+	public static void attachLogger(String stamp){
+		File f = new File(Main.OUTPUT_DIR);
+		f.mkdir();
+		try{
+			fsFitnesstest = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnesstest.txt", "UTF-8");
+		} catch (Exception e){}
+		try{
+			fsFitnesstrain = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnesstrain.txt", "UTF-8");
+		} catch (Exception e){}
+		try{
+			fsFitnessval = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnessvalidation.txt", "UTF-8");
+		} catch (Exception e){}
+		try{
+			fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-GPLog.txt", "UTF-8");
+		} catch (Exception e){}
+	}
+
+	public static void attachLogger(String stamp, LogTag logger){
+		switch (logger) {
+			case SEMANTICS:
+				try{
+					fsSemantics = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-Semantics.txt", "UTF-8");
+				} catch (Exception e){}
+				break;
+			case FITNESSTEST:
+				try{
+					fsFitnesstest = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnesstest.txt", "UTF-8");
+				} catch (Exception e){}
+				break;
+			case FITNESSTRAIN:
+				try{
+					fsFitnesstrain = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnesstrain.txt", "UTF-8");
+				} catch (Exception e){}
+				break;
+			case FITNESSVALIDATION:
+				try{
+					fsFitnessval = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnessvalidation.txt", "UTF-8");
+				} catch (Exception e){}
+				break;
+			case LOG:
+				try{
+					fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-GPLog.txt", "UTF-8");
+				} catch (Exception e){}
+				break;
+		}
+	}
+
+	public static void log(LogTag tag, String line){
+		PrintWriter out = null;
+		switch (tag){
+			case SEMANTICS:
+				out = fsSemantics;
+				break;
+			case FITNESSTEST:
+				out = fsFitnesstest;
+				break;
+			case FITNESSTRAIN:
+				out = fsFitnesstrain;
+				break;
+			case FITNESSVALIDATION:
+				out = fsFitnessval;
+				break;
+			case LOG:
+				out = fslog;
+				break;
+		}
+		if (out != null){
+			out.println(line);
+		}
+	}
+
+	public static void detachLogger(){
+		try{
+			fsSemantics.close();
+			fsSemantics = null;
+		} catch(Exception e){}
+		try{
+			fsFitnesstest.close();
+			fsFitnesstest = null;
+		} catch(Exception e){}
+		try{
+			fsFitnesstrain.close();
+			fsFitnesstrain = null;
+		} catch(Exception e){}
+		try{
+			fsFitnessval.close();
+			fsFitnessval = null;
+		} catch(Exception e){}
+		try{
+			fslog.close();
+			fslog = null;
+		} catch(Exception e){}
 	}
 }

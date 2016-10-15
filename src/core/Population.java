@@ -11,6 +11,7 @@ public class Population implements Serializable {
 	protected ArrayList<Individual> individuals;
 
 	protected ArrayList<double[]> repulsors;
+	protected int lostRepulsors = 0;
 
 	public Population() {
 		individuals = new ArrayList<Individual>();
@@ -125,6 +126,14 @@ public class Population implements Serializable {
 
 	public int getRepulsorsSize() {
 		return repulsors.size();
+	}
+
+	public int getLostRepulsorCount() {
+		return lostRepulsors;
+	}
+
+	public double[] getRepulsorSemantics(int i) {
+		return repulsors.get(i);
 	}
 
 	public Individual getIndividual(int index) {

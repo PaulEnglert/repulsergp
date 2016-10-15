@@ -1,5 +1,7 @@
 package core;
 
+import utils.Utils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
@@ -19,6 +21,7 @@ public class GpRun implements Serializable {
 
 	// ##### parameters #####
 	protected Data data;
+	protected int id;
 	protected ArrayList<ProgramElement> functionSet, terminalSet, fullSet;
 	protected int populationSize = 100;
 	protected int tournamentSize = 4;
@@ -27,6 +30,7 @@ public class GpRun implements Serializable {
 	protected int maximumInitialDepth = 6;
 	protected double crossoverProbability = 0.9;
 	protected boolean printAtEachGeneration = true;
+	protected boolean logSemantics = false;
 	protected int validationEliteSize = 10;
 	protected int repulsorMinAge = 10;
 	protected int repulsorMaxNumber = 25;
@@ -42,9 +46,16 @@ public class GpRun implements Serializable {
 
 	public GpRun(Data data) {
 		this.data = data;
+		this.id = 0;
+	}
+
+	public GpRun(Data data, int id) {
+		this.data = data;
+		this.id = id;
 	}
 
 	public void initialize() {
+		Utils.log(Utils.LogTag.LOG, "Starting Initialization Phase");
 
 		// adds all the functions to the function set
 		functionSet = new ArrayList<ProgramElement>();
@@ -88,10 +99,21 @@ public class GpRun implements Serializable {
 
 		updateCurrentBest();
 
-		System.out.println("\t\tGen\tTraining Error   \tValidation Error \tTest Error      \tSize\tDepth\tRank\t#Repulsors");
+		
+		if (id == 0){
+			Utils.log(Utils.LogTag.FITNESSTEST, "RID\tGen\tTest Error\tSize\tDepth");
+			Utils.log(Utils.LogTag.FITNESSTRAIN, "RID\tGen\tTraining Error\tSize\tDepth\tpr\t#rep\tdistances to all repulsors");
+			Utils.log(Utils.LogTag.FITNESSVALIDATION, "RID\tGen\nValidation Error\tSize\tDepth");
+			if (logSemantics){
+				Utils.log(Utils.LogTag.SEMANTICS, "RID\tGen\tidx\tisRep\tSemantics on training data");
+			}
+		}
+
 		printState();
 
 		currentGeneration++;
+
+		Utils.log(Utils.LogTag.LOG, "Finished Initialization Phase");
 	}
 
 	protected void rampedHalfAndHalfInitialization() {
@@ -169,13 +191,17 @@ public class GpRun implements Serializable {
 	}
 
 	public void evolve(int numberOfGenerations) {
+		Utils.log(Utils.LogTag.LOG, "Starting Evolution (" + numberOfGenerations +" Generations)");
 		// evolve for a given number of generations
 		while (currentGeneration <= numberOfGenerations) {
+			System.out.println("Generation " + currentGeneration);
 			Population offspring = new Population();
 			offspring.addIndividual(population.getBest());
 			if (currentGeneration >= repulsorMinAge)
 				offspring.repulsors = population.repulsors;
+				offspring.lostRepulsors = population.lostRepulsors;
 
+			int newReps = 0;
 			// generate a new offspring population
 			while (offspring.getSize() < population.getSize()) {
 				Individual p1, newIndividual;
@@ -202,33 +228,75 @@ public class GpRun implements Serializable {
 				}
 				offspring.addIndividual(newIndividual);
 				tryAddToValidationElite(newIndividual);
-				if (!useOnlyBestAsRepCandidate && isOverfitting(newIndividual)){
+				if ((currentGeneration >= repulsorMinAge) && !useOnlyBestAsRepCandidate && isOverfitting(newIndividual)){
+					newReps++;
 					offspring.repulsors.add(newIndividual.getTrainingDataOutputs());
-					if (offspring.repulsors.size() > repulsorMaxNumber)
+					if (offspring.repulsors.size() > repulsorMaxNumber){
+						offspring.lostRepulsors += offspring.repulsors.size()-repulsorMaxNumber;
 						offspring.repulsors = new ArrayList<double[]>(offspring.repulsors.subList(offspring.repulsors.size()-repulsorMaxNumber, offspring.repulsors.size()));
+					}
 					// System.out.println("Added new repulsor (using only best = false), total of " + offspring.repulsors.size() + " ("+repulsorMaxNumber+").");
 				}
 			}
 
+			int prevRepCount = population.getRepulsorsSize();
 			population = offspring;
 			population.nsgaIISort(); // calculate ranks of new population
 			updateCurrentBest();
-			if (useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
+			if ((currentGeneration >= repulsorMinAge) && useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
+				newReps++;
 				population.repulsors.add(currentBest.getTrainingDataOutputs());
-				if (population.repulsors.size() > repulsorMaxNumber)
+				if (population.repulsors.size() > repulsorMaxNumber){
+					population.lostRepulsors += population.repulsors.size()-repulsorMaxNumber;
 					population.repulsors = new ArrayList<double[]>(population.repulsors.subList(population.repulsors.size()-repulsorMaxNumber, population.repulsors.size()));
+				}
 				// System.out.println("Added new repulsor (using only best = true), total of " + population.repulsors.size() + " ("+repulsorMaxNumber+").");
 			}
-			printState();
+			Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added "+newReps+" new repulsor");
+			printState(prevRepCount);
 			currentGeneration++;
 		}
+
+		Utils.log(Utils.LogTag.LOG, "Finished Evolution");
 	}
 
 	protected void printState() {
+		printState(0);
+	}
+	protected void printState(int numReps) {
 		if (printAtEachGeneration) {
-			System.out.println("\t\t"+currentGeneration+"\t"+currentBest.getTrainingError()+"\t"+currentBest.getValidationError()
-				+"\t"+currentBest.getUnseenError()+"\t"+currentBest.getSize()
-				+"\t"+currentBest.getDepth() + "\t"+currentBest.getRank() + "\t"+population.getRepulsorsSize());
+			// test/unseen data 
+			Utils.log(Utils.LogTag.FITNESSTEST, ""+id+"\t"+currentGeneration+"\t"+currentBest.getUnseenError()+"\t"+currentBest.getSize()+"\t"+currentBest.getDepth());
+			// validation data
+			Utils.log(Utils.LogTag.FITNESSVALIDATION, ""+id+"\t"+currentGeneration+"\t"+currentBest.getValidationError()+"\t"+currentBest.getSize()+"\t"+currentBest.getDepth());
+			// training data
+			String outTrain = ""+id+"\t"+currentGeneration+"\t"+currentBest.getTrainingError()+"\t"+currentBest.getSize()+"\t"+currentBest.getDepth()
+								+"\t"+currentBest.getRank() + "\t"+numReps;
+			for (int l = 0; l < population.lostRepulsors; l++){
+				outTrain += "\tNA";
+			}
+			for (int r = 0; r < numReps; r++){
+				outTrain += "\t"+currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r));
+			}
+			Utils.log(Utils.LogTag.FITNESSTRAIN, outTrain);
+		}
+		if (logSemantics){
+			for (int i = 0; i < population.getSize(); i++){
+				Individual ind = population.getIndividual(i);
+				String out = ""+ind.getTrainingDataOutputs()[0];
+				for (int s = 1; s < ind.getTrainingDataOutputs().length; s++){
+					out += "\t" + ind.getTrainingDataOutputs()[s];
+				}
+				Utils.log(Utils.LogTag.SEMANTICS, ""+id+"\t"+currentGeneration+"\t"+i+"\t0\t"+out);
+			}
+			for (int i = 0; i < numReps; i++){
+				double[] sems = population.repulsors.get(i);
+				String out = ""+sems[0];
+				for (int s = 1; s < sems.length; s++){
+					out += "\t" + sems[s];
+				}
+				Utils.log(Utils.LogTag.SEMANTICS, ""+id+"\t"+currentGeneration+"\t"+i+"\t1\t"+out);
+			}
 		}
 	}
 
@@ -393,6 +461,10 @@ public class GpRun implements Serializable {
 
 	public void setPrintAtEachGeneration(boolean printAtEachGeneration) {
 		this.printAtEachGeneration = printAtEachGeneration;
+	}
+
+	public void setLogSemantics(boolean logSemantics) {
+		this.logSemantics = logSemantics;
 	}
 
 	public void setPopulationSize(int populationSize) {

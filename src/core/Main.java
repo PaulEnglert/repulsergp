@@ -6,13 +6,16 @@ public class Main {
 
 	// general parameters
 	public static String APPID = "default";
+	public static String OUTPUT_DIR = "./results";
+	public static String CONFIG_FILE = "";
+	public static boolean LOG_SEMANTICS = false;
 	public static String DATA_FILENAME = "dataset";
 	public static int NUMBER_OF_RUNS = 1;
 	public static int NUMBER_OF_GENERATIONS = 5;
 
 	// GP Parameters
 	public static int POPULATION_SIZE = 100;
-	public static int TOURNAMENT_SIZE = 100;
+	public static int TOURNAMENT_SIZE = 4;
 	public static boolean APPLY_DEPTH_LIMIT = true;
 	public static int MAXIMUM_DEPTH = 17;
 	public static int MAXIMUM_INITIAL_DEPTH = 6;
@@ -31,21 +34,42 @@ public class Main {
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
 
-		System.out.println("\nStarting Setup Phase");
-
 		// load configuration file
 		parseArguments(args);
+
+		// start logging to files
+		Utils.attachLogger(""+startTime);
+
+		Utils.log(Utils.LogTag.LOG, "Starting Setup Phase\n");
+
+		if (!CONFIG_FILE.equals("")){
+			Utils.readConfigFile(CONFIG_FILE);
+		}
+		else{
+			System.out.println("WARNING: Running without the use of argument '-config <path to confguration file>', consider using 'java -jar GP.jar -config <path>' to gain controll over the parameters.\n");
+			System.out.println("The following can be used (and is default) as a configuration(.ini) file:");
+			System.out.println("number_of_generations=6\nnumber_of_runs=2\ndata_filename=dataset\npopulation_size=100\ntournament_size=4\napply_depth_limit=1\nmaximum_depth=17\nmaximum_initial_depth=6\ncrossover_probability=0.9\nprint_at_each_generation=1"+
+				"validation_set_size=0.2\nrepulsor_min_age=10\nsemantic_repulsor_max_number=50\nvalidation_elite_size=10\nuse_only_best_as_rep_candidate\noverfit_by_median=1\nlog_semantics=0");
+			Utils.log(Utils.LogTag.LOG, "Configuration:");
+			Utils.log(Utils.LogTag.LOG, "number_of_generations=6\nnumber_of_runs=2\ndata_filename=dataset\npopulation_size=100\ntournament_size=4\napply_depth_limit=1\nmaximum_depth=17\nmaximum_initial_depth=6\ncrossover_probability=0.9\nprint_at_each_generation=1"+
+				"validation_set_size=0.2\nrepulsor_min_age=10\nsemantic_repulsor_max_number=50\nvalidation_elite_size=10\nuse_only_best_as_rep_candidate\noverfit_by_median=1\nlog_semantics=0");
+		}
+
+		if (LOG_SEMANTICS)
+			Utils.attachLogger(""+startTime, Utils.LogTag.SEMANTICS);
 
 		// load training and unseen data
 		Data data = Utils.loadData(DATA_FILENAME, VALIDATION_SET_SIZE, SHUFFLE_VALIDATION_SPLIT);
 
-		System.out.println("Finished Setup Phase\n");
-		System.out.println("Starting Evolution");
+		Utils.log(Utils.LogTag.LOG, "Finished Setup Phase\n");
+		Utils.log(Utils.LogTag.LOG, "Starting Evolution\n");
 
 		// run GP for a given number of runs
 		double[][] resultsPerRun = new double[6][NUMBER_OF_RUNS];
 		for (int i = 0; i < NUMBER_OF_RUNS; i++) {
-			System.out.printf("\tRun %d\n", i + 1);
+			Utils.log(Utils.LogTag.LOG, "\n\t\t##### Run "+(i+1)+" #####\n");
+			System.out.println("Run "+(i+1));
+
 			GpRun gp = new GpRun(data);
 			// GsgpRun gp = new GsgpRun(data);
 
@@ -57,6 +81,7 @@ public class Main {
 			gp.setMaximumInitialDepth(MAXIMUM_INITIAL_DEPTH);
 			gp.setCrossoverProbability(CROSSOVER_PROBABILITY);
 			gp.setPrintAtEachGeneration(PRINT_AT_EACH_GENERATION);
+			gp.setLogSemantics(LOG_SEMANTICS);
 			gp.setRepulsorMinAge(REPULSOR_MIN_AGE);
 			gp.setRepulsorMaxNumber(SEMANTIC_REPULSOR_MAX_NUMBER);
 			gp.setValidationEliteSize(VALIDATION_ELITE_SIZE);
@@ -73,35 +98,38 @@ public class Main {
 			resultsPerRun[3][i] = bestFound.getSize();
 			resultsPerRun[4][i] = bestFound.getDepth();
 			resultsPerRun[5][i] = gp.getPopulation().getRepulsorsSize();
-			System.out.print("\n\t\tBest =>");
-			bestFound.print();
-			System.out.println();
+			Utils.log(Utils.LogTag.LOG, "\nBest =>"+bestFound.print());
 		}
 
 		// present average results
-		System.out.printf("\n\tAVERAGE results after "+NUMBER_OF_RUNS+" runs ("+NUMBER_OF_GENERATIONS+" Generations)\n");
-		System.out.println("\t\tRuns\tTraining Error   \tValidation Error \tTest Error      \tSize\tDepth\t#Repulsors");
-		System.out.println("\t\t"+NUMBER_OF_RUNS+"\t"+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+
+		Utils.log(Utils.LogTag.LOG, "\n\t\t##### AVERAGE results after "+NUMBER_OF_RUNS+" runs ("+NUMBER_OF_GENERATIONS+" Generations) #####\n\n");
+		Utils.log(Utils.LogTag.LOG, "\t\tRuns\tTraining Error   \tValidation Error \tTest Error      \tSize\tDepth\t#Repulsors");
+		Utils.log(Utils.LogTag.LOG, "\t\t"+NUMBER_OF_RUNS+"\t"+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+
 			"\t"+Utils.getAverage(resultsPerRun[2])+"\t"+Utils.getAverage(resultsPerRun[3])+
 			"\t"+Utils.getAverage(resultsPerRun[4])+"\t"+Utils.getAverage(resultsPerRun[5]));
 
-		System.out.println("Finished Evolution\n");
+		Utils.log(Utils.LogTag.LOG, "Finished Evolution\n");
 
 		Long endTime = System.currentTimeMillis();
-		System.out.println("Finished after " + ((double)(endTime-startTime))/1000 + "s");
+		Utils.log(Utils.LogTag.LOG, "Finished after " + ((double)(endTime-startTime))/1000 + "s");
+
+		Utils.detachLogger();
 	}
 
 
 	public static void parseArguments(String[] args){
-		boolean isConfigured = false;
 		int i = 0;
 		try {
 			while (i < args.length){
 				switch (args[i]) {
 					case "-config":
 						i++;
-						Utils.readConfigFile(args[i]);
-						isConfigured = true;
+						CONFIG_FILE = args[i];
+						break;
+					case "-d":
+					case "--directory":
+						i++;
+						OUTPUT_DIR = args[i];
 						break;
 					case "-aid":
 						i++;
@@ -112,11 +140,6 @@ public class Main {
 			}
 		} catch(Exception e){
 			System.out.println("ERROR: Failed parsing arguments.");
-		}
-		if (!isConfigured){
-			System.out.println("WARNING: Running without the use of argument '-config <path to confguration file>', consider using 'java -jar GP.jar -config <path>' to gain controll over the parameters.\n");
-			System.out.println("The following can be used (and is default) as a configuration(.ini) file:");
-			System.out.println("number_of_generations=6\nnumber_of_runs=2\ndata_filename=dataset\npopulation_size=100\napply_depth_limit=1\nmaximum_depth=17\nmaximum_initial_depth=6\ncrossover_probability=0.9\nprint_at_each_generation=1\nshuffle_validation_split=1");
 		}
 	}
 }

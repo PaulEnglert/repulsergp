@@ -1,5 +1,7 @@
 package core;
 
+import utils.Utils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -196,28 +198,32 @@ public class Individual implements Serializable {
 		program.set(index, programElement);
 	}
 
-	public void print() {
+	public String print() {
+		String out = " ";
 		if (sizeOverride == true) {
-			System.out.println(" [Individual not constructed]");
+			out += "[Individual not constructed]";
 		} else {
 			printIndex = 0;
-			printInner();
+			out += printInner();
 		}
+		return out;
 	}
 
-	protected void printInner() {
+	protected String printInner() {
+		String out = "";
 		if (program.get(printIndex) instanceof Terminal) {
-			System.out.print(" " + program.get(printIndex));
+			out += " " + program.get(printIndex);
 		} else {
-			System.out.print(" (");
-			System.out.print(program.get(printIndex));
+			out += " (";
+			out += program.get(printIndex);
 			Operator currentOperator = (Operator) program.get(printIndex);
 			for (int i = 0; i < currentOperator.getArity(); i++) {
 				printIndex++;
-				printInner();
+				out += printInner();
 			}
-			System.out.print(")");
+			out += ")";
 		}
+		return out;
 	}
 
 	// ##### get's and set's from here on #####
