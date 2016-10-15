@@ -212,6 +212,9 @@ public class Population implements Serializable {
 				if (iIsRepulsor && !jIsRepulsor){
 					iDominatesJ = false;
 					jDominatesI = true;
+				} else if (!iIsRepulsor && jIsRepulsor){
+					iDominatesJ = true;
+					jDominatesI = false;
 				} else if (iIsRepulsor && jIsRepulsor){
 					iDominatesJ = false;
 					jDominatesI = false;
