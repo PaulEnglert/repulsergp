@@ -172,6 +172,7 @@ public class GpRun implements Serializable {
 		// evolve for a given number of generations
 		while (currentGeneration <= numberOfGenerations) {
 			Population offspring = new Population();
+			offspring.addIndividual(population.getBest());
 			if (currentGeneration >= repulsorMinAge)
 				offspring.repulsors = population.repulsors;
 
@@ -209,8 +210,7 @@ public class GpRun implements Serializable {
 				}
 			}
 
-			population = selectSurvivors(offspring);
-			population.repulsors = offspring.repulsors;
+			population = offspring;
 			population.nsgaIISort(); // calculate ranks of new population
 			updateCurrentBest();
 			if (useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
@@ -277,30 +277,6 @@ public class GpRun implements Serializable {
 
 		offspring.calculateDepth();
 		return offspring;
-	}
-
-	// keep the best overall + all the remaining offsprings
-	protected Population selectSurvivors(Population newIndividuals) {
-		Population survivors = new Population();
-		Individual bestParent = population.getBest();
-		Individual bestNewIndividual = newIndividuals.getBest();
-		Individual bestOverall;
-		// the best overall is in the current population
-		if (bestParent.getTrainingError() < bestNewIndividual.getTrainingError()) {
-			bestOverall = bestParent;
-		}
-		// the best overall is in the offspring population
-		else {
-			bestOverall = bestNewIndividual;
-		}
-
-		survivors.addIndividual(bestOverall);
-		for (int i = 0; i < newIndividuals.getSize(); i++) {
-			if (newIndividuals.getIndividual(i).getId() != bestOverall.getId()) {
-				survivors.addIndividual(newIndividuals.getIndividual(i));
-			}
-		}
-		return survivors;
 	}
 
 	protected void updateCurrentBest() {

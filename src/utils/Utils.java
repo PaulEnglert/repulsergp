@@ -30,9 +30,6 @@ public class Utils {
 					trainingData[randomIndex] = temporaryValue;
 				}				
 			}
-			for (int i = 0; i < trainingData.length; i++){
-				System.out.println(""+trainingData[i][0]);
-			}
 			// split data set
 			int numTrainInstances = (int)Math.floor(trainingData.length*(1-validationSetSize));
 			double[][] trainingNewData = Arrays.copyOfRange(trainingData, 0, numTrainInstances);
