@@ -17,32 +17,27 @@ public class Utils {
 		double[][] trainingData = Utils.readData(dataFilename + "_training.txt");
 		double[][] unseenData = Utils.readData(dataFilename + "_unseen.txt");
 		if (validationSetSize > 0){
-			int numTrainInstances = (int)Math.floor(trainingData.length*(1-validationSetSize));
-			double[][] trainingNewData, validationData;
-			if (!shuffleValidationSplit){
-				trainingNewData = Arrays.copyOfRange(trainingData, 0, numTrainInstances);
-				validationData = Arrays.copyOfRange(trainingData, numTrainInstances, trainingData.length);
-			} else {
-				int tindx = 0;
-				int vindx = 0;
-				trainingNewData = new double[numTrainInstances][trainingData[0].length];
-				validationData  = new double[trainingData.length-numTrainInstances][trainingData[0].length];
-				for (int i = 0; i < trainingData.length; i++){
-					if (tindx == numTrainInstances){
-						validationData[vindx] = trainingData[i];
-						vindx++;		
-					} else if (vindx == trainingData.length-numTrainInstances){
-						trainingNewData[tindx] = trainingData[i];
-						tindx++;		
-					} else if (Math.random() > 0.5){
-						trainingNewData[tindx] = trainingData[i];
-						tindx++;
-					} else{
-						validationData[vindx] = trainingData[i];
-						vindx++;						
-					}
-				}
+			// shuffle data set
+			if (shuffleValidationSplit){
+				int currentIndex = trainingData.length;
+				double[] temporaryValue;
+				int randomIndex;
+				while (currentIndex != 0) {
+					randomIndex = (int)Math.floor(Math.random() * currentIndex);
+					currentIndex -= 1;
+					temporaryValue = trainingData[currentIndex];
+					trainingData[currentIndex] = trainingData[randomIndex];
+					trainingData[randomIndex] = temporaryValue;
+				}				
 			}
+			for (int i = 0; i < trainingData.length; i++){
+				System.out.println(""+trainingData[i][0]);
+			}
+			// split data set
+			int numTrainInstances = (int)Math.floor(trainingData.length*(1-validationSetSize));
+			double[][] trainingNewData = Arrays.copyOfRange(trainingData, 0, numTrainInstances);
+			double[][] validationData = Arrays.copyOfRange(trainingData, numTrainInstances, trainingData.length);
+			
 			System.out.println("\tSplit original trainingset (" + trainingData.length + " instances) into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
 			return new Data(trainingNewData, validationData, unseenData);
 		}
