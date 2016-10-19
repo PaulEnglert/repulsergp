@@ -101,11 +101,11 @@ public class GpRun implements Serializable {
 
 		
 		if (id == 0){
-			Utils.log(Utils.LogTag.FITNESSTEST, "RID\tGen\tTest Error\tSize\tDepth");
-			Utils.log(Utils.LogTag.FITNESSTRAIN, "RID\tGen\tTraining Error\tSize\tDepth\tpr\t#rep\tdistances to all repulsors");
-			Utils.log(Utils.LogTag.FITNESSVALIDATION, "RID\tGen\nValidation Error\tSize\tDepth");
+			Utils.log(Utils.LogTag.FITNESSTEST, "RID;Gen;Test Error;Size;Depth");
+			Utils.log(Utils.LogTag.FITNESSTRAIN, "RID;Gen;Training Error;Size;Depth;pr;#rep;distances to all repulsors");
+			Utils.log(Utils.LogTag.FITNESSVALIDATION, "RID;Gen;Validation Error;Size;Depth");
 			if (logSemantics){
-				Utils.log(Utils.LogTag.SEMANTICS, "RID\tGen\tidx\tisRep\tSemantics on training data");
+				Utils.log(Utils.LogTag.SEMANTICS, "RID;Gen;idx;isRep;Semantics on training data");
 			}
 		}
 
@@ -266,17 +266,17 @@ public class GpRun implements Serializable {
 	protected void printState(int numReps) {
 		if (printAtEachGeneration) {
 			// test/unseen data 
-			Utils.log(Utils.LogTag.FITNESSTEST, ""+id+"\t"+currentGeneration+"\t"+currentBest.getUnseenError()+"\t"+currentBest.getSize()+"\t"+currentBest.getDepth());
+			Utils.log(Utils.LogTag.FITNESSTEST, ""+id+";"+currentGeneration+";"+currentBest.getUnseenError()+";"+currentBest.getSize()+";"+currentBest.getDepth());
 			// validation data
-			Utils.log(Utils.LogTag.FITNESSVALIDATION, ""+id+"\t"+currentGeneration+"\t"+currentBest.getValidationError()+"\t"+currentBest.getSize()+"\t"+currentBest.getDepth());
+			Utils.log(Utils.LogTag.FITNESSVALIDATION, ""+id+";"+currentGeneration+";"+currentBest.getValidationError()+";"+currentBest.getSize()+";"+currentBest.getDepth());
 			// training data
-			String outTrain = ""+id+"\t"+currentGeneration+"\t"+currentBest.getTrainingError()+"\t"+currentBest.getSize()+"\t"+currentBest.getDepth()
-								+"\t"+currentBest.getRank() + "\t"+numReps;
+			String outTrain = ""+id+";"+currentGeneration+";"+currentBest.getTrainingError()+";"+currentBest.getSize()+";"+currentBest.getDepth()
+								+";"+currentBest.getRank() + ";"+numReps;
 			for (int l = 0; l < population.lostRepulsors; l++){
-				outTrain += "\tNA";
+				outTrain += ";NA";
 			}
 			for (int r = 0; r < numReps; r++){
-				outTrain += "\t"+currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r));
+				outTrain += ";"+currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r));
 			}
 			Utils.log(Utils.LogTag.FITNESSTRAIN, outTrain);
 		}
@@ -285,17 +285,17 @@ public class GpRun implements Serializable {
 				Individual ind = population.getIndividual(i);
 				String out = ""+ind.getTrainingDataOutputs()[0];
 				for (int s = 1; s < ind.getTrainingDataOutputs().length; s++){
-					out += "\t" + ind.getTrainingDataOutputs()[s];
+					out += ";" + ind.getTrainingDataOutputs()[s];
 				}
-				Utils.log(Utils.LogTag.SEMANTICS, ""+id+"\t"+currentGeneration+"\t"+i+"\t0\t"+out);
+				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+i+";0;"+out);
 			}
 			for (int i = 0; i < numReps; i++){
 				double[] sems = population.repulsors.get(i);
 				String out = ""+sems[0];
 				for (int s = 1; s < sems.length; s++){
-					out += "\t" + sems[s];
+					out += ";" + sems[s];
 				}
-				Utils.log(Utils.LogTag.SEMANTICS, ""+id+"\t"+currentGeneration+"\t"+i+"\t1\t"+out);
+				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+i+";1;"+out);
 			}
 		}
 	}
