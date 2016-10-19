@@ -199,7 +199,7 @@ public class Utils {
 			fsFitnessval = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnessvalidation.txt", "UTF-8");
 		} catch (Exception e){}
 		try{
-			fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-gp.txt", "UTF-8");
+			fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-gp.log", "UTF-8");
 		} catch (Exception e){}
 	}
 
@@ -227,7 +227,7 @@ public class Utils {
 				break;
 			case LOG:
 				try{
-					fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-gp.txt", "UTF-8");
+					fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-gp.log", "UTF-8");
 				} catch (Exception e){}
 				break;
 		}
