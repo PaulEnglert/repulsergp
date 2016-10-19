@@ -49,11 +49,13 @@ public class Utils {
 				}				
 			}
 			// split data set
-			int numTrainInstances = (int)Math.floor(trainingData.length*(1-validationSetSize));
+			int numTrainInstances = (int)Math.ceil(trainingData.length*(1-validationSetSize));
 			double[][] trainingNewData = Arrays.copyOfRange(trainingData, 0, numTrainInstances);
 			double[][] validationData = Arrays.copyOfRange(trainingData, numTrainInstances, trainingData.length);
 			
-			System.out.println("\tSplit original trainingset (" + trainingData.length + " instances) into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
+			log(LogTag.LOG, "\n\tRead training data from "+dataTrainFilename+" with "+trainingData.length+" instances");
+			log(LogTag.LOG, "\tRead test data from " + dataTestFilename+ " with "+unseenData.length+" instances");
+			log(LogTag.LOG, "\tSplit original trainingset (" + trainingData.length + " instances) by "+validationSetSize+" into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
 			return new Data(trainingNewData, validationData, unseenData);
 		}
 		return new Data(trainingData, unseenData);
