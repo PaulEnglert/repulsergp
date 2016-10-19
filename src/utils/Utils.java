@@ -29,6 +29,8 @@ public class Utils {
 	private static PrintWriter fsFitnessval = null;
 	private static PrintWriter fslog = null;
 
+	private static int dataHeaderLines = 0;
+
 	public static Data loadData(String dataTrainFilename, String dataTestFilename, double validationSetSize, boolean shuffleValidationSplit) {
 		double[][] trainingData = Utils.readData(dataTrainFilename);
 		double[][] unseenData = Utils.readData(dataTestFilename);
@@ -60,11 +62,15 @@ public class Utils {
 	public static double[][] readData(String filename) {
 		double[][] data = null;
 		List<String> allLines = new ArrayList<String>();
+		int ignored = 0;
 		try {
 			BufferedReader inputBuffer = new BufferedReader(new FileReader(filename));
 			String line = inputBuffer.readLine();
 			while (line != null) {
-				allLines.add(line);
+				if (ignored < dataHeaderLines)
+					ignored++;
+				else
+					allLines.add(line);
 				line = inputBuffer.readLine();
 			}
 			inputBuffer.close();
@@ -149,6 +155,9 @@ public class Utils {
 							break;
 						case "log_semantics":
 							Main.LOG_SEMANTICS = (Integer.parseInt(parts[1]) == 1);
+							break;
+						case "data_header_lines":
+							dataHeaderLines = Integer.parseInt(parts[1]);
 							break;
 					} 
 				} catch (Exception e){
