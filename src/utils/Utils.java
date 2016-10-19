@@ -29,9 +29,9 @@ public class Utils {
 	private static PrintWriter fsFitnessval = null;
 	private static PrintWriter fslog = null;
 
-	public static Data loadData(String dataFilename, double validationSetSize, boolean shuffleValidationSplit) {
-		double[][] trainingData = Utils.readData(dataFilename + "_training.txt");
-		double[][] unseenData = Utils.readData(dataFilename + "_unseen.txt");
+	public static Data loadData(String dataTrainFilename, String dataTestFilename, double validationSetSize, boolean shuffleValidationSplit) {
+		double[][] trainingData = Utils.readData(dataTrainFilename);
+		double[][] unseenData = Utils.readData(dataTestFilename);
 		if (validationSetSize > 0){
 			// shuffle data set
 			if (shuffleValidationSplit){
@@ -99,8 +99,11 @@ public class Utils {
 						case "number_of_runs":
 							Main.NUMBER_OF_RUNS = Integer.parseInt(parts[1]);
 							break; 	
-						case "data_filename":
-							Main.DATA_FILENAME = parts[1];
+						case "data_train_filename":
+							Main.DATA_TRAIN_FILENAME = parts[1];
+							break; 
+						case "data_test_filename":
+							Main.DATA_TEST_FILENAME = parts[1];
 							break; 	
 						case "population_size":
 							Main.POPULATION_SIZE = Integer.parseInt(parts[1]);

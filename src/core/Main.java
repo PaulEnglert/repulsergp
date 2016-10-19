@@ -9,7 +9,8 @@ public class Main {
 	public static String OUTPUT_DIR = "./results";
 	public static String CONFIG_FILE = "";
 	public static boolean LOG_SEMANTICS = false;
-	public static String DATA_FILENAME = "dataset";
+	public static String DATA_TRAIN_FILENAME = "dataset";
+	public static String DATA_TEST_FILENAME = "dataset";
 	public static int NUMBER_OF_RUNS = 1;
 	public static int NUMBER_OF_GENERATIONS = 5;
 
@@ -61,7 +62,7 @@ public class Main {
 			Utils.attachLogger(""+startTime, Utils.LogTag.SEMANTICS);
 
 		// load training and unseen data
-		Data data = Utils.loadData(DATA_FILENAME, VALIDATION_SET_SIZE, SHUFFLE_VALIDATION_SPLIT);
+		Data data = Utils.loadData(DATA_TRAIN_FILENAME, DATA_TEST_FILENAME, VALIDATION_SET_SIZE, SHUFFLE_VALIDATION_SPLIT);
 
 		Utils.log(Utils.LogTag.LOG, "Finished Setup Phase\n");
 		Utils.log(Utils.LogTag.LOG, "Starting Evolution\n");
