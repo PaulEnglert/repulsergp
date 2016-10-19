@@ -40,6 +40,8 @@ public class Main {
 		// start logging to files
 		Utils.attachLogger(""+startTime);
 
+		Utils.log(Utils.LogTag.LOG, "Algorithm: Repulsor GP");
+		Utils.log(Utils.LogTag.LOG, "Timestamp: " + startTime+"\n");
 		Utils.log(Utils.LogTag.LOG, "Starting Setup Phase\n");
 
 		if (!CONFIG_FILE.equals("")){
