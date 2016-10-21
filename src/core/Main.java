@@ -35,6 +35,8 @@ public class Main {
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
 
+		Utils.initDecFormatter();
+
 		// load configuration file
 		parseArguments(args);
 
@@ -107,9 +109,11 @@ public class Main {
 		// present average results
 		Utils.log(Utils.LogTag.LOG, "\n\t\t##### AVERAGE results after "+NUMBER_OF_RUNS+" runs ("+NUMBER_OF_GENERATIONS+" Generations) #####\n\n");
 		Utils.log(Utils.LogTag.LOG, "\t\tRuns\tTraining Error   \tValidation Error \tTest Error      \tSize\tDepth\t#Repulsors");
-		Utils.log(Utils.LogTag.LOG, "\t\t"+NUMBER_OF_RUNS+"\t"+Utils.getAverage(resultsPerRun[0])+"\t"+Utils.getAverage(resultsPerRun[1])+
-			"\t"+Utils.getAverage(resultsPerRun[2])+"\t"+Utils.getAverage(resultsPerRun[3])+
-			"\t"+Utils.getAverage(resultsPerRun[4])+"\t"+Utils.getAverage(resultsPerRun[5]));
+		String dataline = "\t\t"+NUMBER_OF_RUNS;
+		for (int i = 0; i < 6; i++){
+			dataline += "\t"+Utils.format(Utils.getAverage(resultsPerRun[i]));
+		}
+		Utils.log(Utils.LogTag.LOG, dataline);
 
 		Utils.log(Utils.LogTag.LOG, "Finished Evolution\n");
 

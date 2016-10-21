@@ -266,34 +266,34 @@ public class GpRun implements Serializable {
 	protected void printState(int numReps) {
 		if (printAtEachGeneration) {
 			// test/unseen data 
-			Utils.log(Utils.LogTag.FITNESSTEST, ""+id+";"+currentGeneration+";"+currentBest.getUnseenError()+";"+currentBest.getSize()+";"+currentBest.getDepth());
+			Utils.log(Utils.LogTag.FITNESSTEST, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getUnseenError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth()));
 			// validation data
-			Utils.log(Utils.LogTag.FITNESSVALIDATION, ""+id+";"+currentGeneration+";"+currentBest.getValidationError()+";"+currentBest.getSize()+";"+currentBest.getDepth());
+			Utils.log(Utils.LogTag.FITNESSVALIDATION, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getValidationError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth()));
 			// training data
-			String outTrain = ""+id+";"+currentGeneration+";"+currentBest.getTrainingError()+";"+currentBest.getSize()+";"+currentBest.getDepth()
-								+";"+currentBest.getRank() + ";"+numReps;
+			String outTrain = ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getTrainingError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth())
+								+";"+Utils.format(currentBest.getRank()) + ";"+Utils.format(numReps);
 			for (int l = 0; l < population.lostRepulsors; l++){
 				outTrain += ";NA";
 			}
 			for (int r = 0; r < numReps; r++){
-				outTrain += ";"+currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r));
+				outTrain += ";"+Utils.format(currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r)));
 			}
 			Utils.log(Utils.LogTag.FITNESSTRAIN, outTrain);
 		}
 		if (logSemantics){
 			for (int i = 0; i < population.getSize(); i++){
 				Individual ind = population.getIndividual(i);
-				String out = ""+ind.getTrainingDataOutputs()[0];
+				String out = ""+Utils.format(ind.getTrainingDataOutputs()[0]);
 				for (int s = 1; s < ind.getTrainingDataOutputs().length; s++){
-					out += ";" + ind.getTrainingDataOutputs()[s];
+					out += ";" + Utils.format(ind.getTrainingDataOutputs()[s]);
 				}
 				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+i+";0;"+out);
 			}
 			for (int i = 0; i < numReps; i++){
 				double[] sems = population.repulsors.get(i);
-				String out = ""+sems[0];
+				String out = ""+Utils.format(sems[0]);
 				for (int s = 1; s < sems.length; s++){
-					out += ";" + sems[s];
+					out += ";" + Utils.format(sems[s]);
 				}
 				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+i+";1;"+out);
 			}

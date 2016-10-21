@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.lang.Math;
+import java.text.DecimalFormat;
 
 import core.Data;
 import core.Main;
@@ -28,6 +29,8 @@ public class Utils {
 	private static PrintWriter fsFitnesstrain = null;
 	private static PrintWriter fsFitnessval = null;
 	private static PrintWriter fslog = null;
+
+	private static DecimalFormat decFormatter;
 
 	private static int dataHeaderLines = 0;
 
@@ -278,5 +281,18 @@ public class Utils {
 			fslog.close();
 			fslog = null;
 		} catch(Exception e){}
+	}
+
+	public static void initDecFormatter(){
+		Utils.decFormatter = new DecimalFormat("0.######E0");
+		Utils.decFormatter.setMaximumFractionDigits(5);
+	}
+
+	public static String format(double num){
+		String s = ""+num;
+		if (s.length() > 14)
+			return Utils.decFormatter.format(num).toLowerCase().replaceAll("e0", "");
+		else
+			return s;
 	}
 }
