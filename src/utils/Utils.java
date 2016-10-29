@@ -21,6 +21,7 @@ public class Utils {
 	    FITNESSTEST,
 	    FITNESSTRAIN,
 	    FITNESSVALIDATION,
+	    REPULSERDISTANCES,
 	    LOG
 	}
 
@@ -29,6 +30,7 @@ public class Utils {
 	private static PrintWriter fsFitnesstrain = null;
 	private static PrintWriter fsFitnessval = null;
 	private static PrintWriter fslog = null;
+	private static PrintWriter fsRepulserDistances = null;
 
 	private static DecimalFormat decFormatter;
 
@@ -204,6 +206,9 @@ public class Utils {
 		try{
 			fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-gp.log", "UTF-8");
 		} catch (Exception e){}
+		try{
+			fsRepulserDistances = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-repulserdistances.txt", "UTF-8");
+		} catch (Exception e){}
 	}
 
 	public static void attachLogger(String stamp, LogTag logger){
@@ -228,6 +233,11 @@ public class Utils {
 					fsFitnessval = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-fitnessvalidation.txt", "UTF-8");
 				} catch (Exception e){}
 				break;
+			case REPULSERDISTANCES:
+				try{
+					fsRepulserDistances = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-repulserdistances.txt", "UTF-8");
+				} catch (Exception e){}
+				break;
 			case LOG:
 				try{
 					fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-gp.log", "UTF-8");
@@ -250,6 +260,9 @@ public class Utils {
 				break;
 			case FITNESSVALIDATION:
 				out = fsFitnessval;
+				break;
+			case REPULSERDISTANCES:
+				out = fsRepulserDistances;
 				break;
 			case LOG:
 				out = fslog;
@@ -280,6 +293,10 @@ public class Utils {
 		try{
 			fslog.close();
 			fslog = null;
+		} catch(Exception e){}
+		try{
+			fsRepulserDistances.close();
+			fsRepulserDistances = null;
 		} catch(Exception e){}
 	}
 

@@ -24,6 +24,9 @@ public class Individual implements Serializable {
 	protected double trainingError, validationError, unseenError;
 	protected double[] trainingDataOutputs, validationDataOutputs, unseenDataOutputs;
 
+	// repulser data
+	protected double overfitSeverity;
+
 	protected int evaluateIndex;
 	protected int maximumDepthAchieved;
 	protected int depthCalculationIndex;
@@ -272,6 +275,10 @@ public class Individual implements Serializable {
 		return nsga_II_rank;
 	}
 
+	public double getOverfitSeverity() {
+		return overfitSeverity;
+	}
+
 	public ArrayList<ProgramElement> getProgram() {
 		return program;
 	}
@@ -290,6 +297,10 @@ public class Individual implements Serializable {
 
 	public void setRank(int rank) {
 		this.nsga_II_rank = rank;
+	}
+
+	public void setOverfitSeverity(double overfitSeverity) {
+		this.overfitSeverity = overfitSeverity;
 	}
 
 	public void setTrainingDataOutputs(double[] trainingDataOutputs) {

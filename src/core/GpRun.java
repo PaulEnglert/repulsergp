@@ -102,10 +102,11 @@ public class GpRun implements Serializable {
 		
 		if (id == 0){
 			Utils.log(Utils.LogTag.FITNESSTEST, "RID;Gen;Test Error;Size;Depth");
-			Utils.log(Utils.LogTag.FITNESSTRAIN, "RID;Gen;Training Error;Size;Depth;pr;#rep;distances to all repulsors");
+			Utils.log(Utils.LogTag.FITNESSTRAIN, "RID;Gen;Training Error;Size;Depth;pr;#rep");
 			Utils.log(Utils.LogTag.FITNESSVALIDATION, "RID;Gen;Validation Error;Size;Depth");
+			Utils.log(Utils.LogTag.REPULSERDISTANCES, "RID;Gen;Id;Distance to best individual");
 			if (logSemantics){
-				Utils.log(Utils.LogTag.SEMANTICS, "RID;Gen;idx;isRep;Semantics on training data");
+				Utils.log(Utils.LogTag.SEMANTICS, "RID;Gen;id;isRep;Semantics on training data");
 			}
 		}
 
@@ -199,7 +200,6 @@ public class GpRun implements Serializable {
 			offspring.addIndividual(population.getBest());
 			if (currentGeneration >= repulsorMinAge)
 				offspring.repulsors = population.repulsors;
-				offspring.lostRepulsors = population.lostRepulsors;
 
 			int newReps = 0;
 			// generate a new offspring population
@@ -229,31 +229,20 @@ public class GpRun implements Serializable {
 				offspring.addIndividual(newIndividual);
 				tryAddToValidationElite(newIndividual);
 				if ((currentGeneration >= repulsorMinAge) && !useOnlyBestAsRepCandidate && isOverfitting(newIndividual)){
-					if (offspring.addRepulsor(newIndividual.getTrainingDataOutputs())){
-						newReps++;
-						if (offspring.repulsors.size() > repulsorMaxNumber){
-							offspring.lostRepulsors += offspring.repulsors.size()-repulsorMaxNumber;
-							offspring.repulsors = new ArrayList<double[]>(offspring.repulsors.subList(offspring.repulsors.size()-repulsorMaxNumber, offspring.repulsors.size()));
-						}
-					}
+					newIndividual.setOverfitSeverity(getOverfittingSeverity(newIndividual));
+					offspring.addRepulsor(newIndividual, repulsorMaxNumber);
 				}
 			}
 
-			int prevRepCount = population.getRepulsorsSize();
 			population = offspring;
 			population.nsgaIISort(); // calculate ranks of new population
 			updateCurrentBest();
 			if ((currentGeneration >= repulsorMinAge) && useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
-				if (population.addRepulsor(currentBest.getTrainingDataOutputs())){
-					newReps++;
-					if (population.repulsors.size() > repulsorMaxNumber){
-						population.lostRepulsors += population.repulsors.size()-repulsorMaxNumber;
-						population.repulsors = new ArrayList<double[]>(population.repulsors.subList(population.repulsors.size()-repulsorMaxNumber, population.repulsors.size()));
-					}
-				}
+				currentBest.setOverfitSeverity(getOverfittingSeverity(currentBest));
+				population.addRepulsor(currentBest, repulsorMaxNumber);
+				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added "+newReps+" new repulsor (best was found to overfit)");
 			}
-			Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added "+newReps+" new repulsor");
-			printState(prevRepCount);
+			printState();
 			currentGeneration++;
 		}
 
@@ -261,24 +250,18 @@ public class GpRun implements Serializable {
 	}
 
 	protected void printState() {
-		printState(0);
-	}
-	protected void printState(int numReps) {
 		if (printAtEachGeneration) {
 			// test/unseen data 
 			Utils.log(Utils.LogTag.FITNESSTEST, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getUnseenError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth()));
 			// validation data
 			Utils.log(Utils.LogTag.FITNESSVALIDATION, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getValidationError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth()));
 			// training data
-			String outTrain = ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getTrainingError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth())
-								+";"+Utils.format(currentBest.getRank()) + ";"+Utils.format(numReps);
-			for (int l = 0; l < population.lostRepulsors; l++){
-				outTrain += ";NA";
+			Utils.log(Utils.LogTag.FITNESSTRAIN, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getTrainingError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth())
+								+";"+Utils.format(currentBest.getRank()) + ";"+Utils.format(population.getRepulsorsSize()));
+			// log repulser distances
+			for (int r = 0; r < population.getRepulsorsSize(); r++){
+				Utils.log(Utils.LogTag.REPULSERDISTANCES, ""+id+";"+currentGeneration+";"+population.getRepulsor(r).getId()+";"+Utils.format(currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r))));
 			}
-			for (int r = 0; r < numReps; r++){
-				outTrain += ";"+Utils.format(currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r)));
-			}
-			Utils.log(Utils.LogTag.FITNESSTRAIN, outTrain);
 		}
 		if (logSemantics && (currentGeneration)%50==0){
 			for (int i = 0; i < population.getSize(); i++){
@@ -287,15 +270,15 @@ public class GpRun implements Serializable {
 				for (int s = 1; s < ind.getTrainingDataOutputs().length; s++){
 					out += ";" + Utils.format(ind.getTrainingDataOutputs()[s]);
 				}
-				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+i+";0;"+out);
+				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+ind.getId()+";0;"+out);
 			}
-			for (int i = 0; i < numReps; i++){
-				double[] sems = population.repulsors.get(i);
+			for (int i = 0; i < population.getRepulsorsSize(); i++){
+				double[] sems = population.getRepulsorSemantics(i);
 				String out = ""+Utils.format(sems[0]);
 				for (int s = 1; s < sems.length; s++){
 					out += ";" + Utils.format(sems[s]);
 				}
-				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+i+";1;"+out);
+				Utils.log(Utils.LogTag.SEMANTICS, ""+id+";"+currentGeneration+";"+population.getRepulsor(i).getId()+";1;"+out);
 			}
 		}
 	}
@@ -371,6 +354,15 @@ public class GpRun implements Serializable {
 		else
 			return individual.getValidationError() > validationElite.getAverageFitness("validation");
 
+	}
+
+	protected double getOverfittingSeverity(Individual individual){
+		double valFit=0;
+		if (overfitByMedian)
+			valFit = validationElite.getMedianFitness("validation");
+		else
+			valFit = validationElite.getAverageFitness("validation");
+		return valFit-individual.getValidationError();
 	}
 
 	// ##### get's and set's from here on #####

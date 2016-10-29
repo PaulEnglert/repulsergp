@@ -10,12 +10,11 @@ public class Population implements Serializable {
 
 	protected ArrayList<Individual> individuals;
 
-	protected ArrayList<double[]> repulsors;
-	protected int lostRepulsors = 0;
+	protected ArrayList<Individual> repulsors;
 
 	public Population() {
 		individuals = new ArrayList<Individual>();
-		repulsors = new ArrayList<double[]>();
+		repulsors = new ArrayList<Individual>();
 	}
 
 	public Individual getBest() {
@@ -128,11 +127,11 @@ public class Population implements Serializable {
 		return repulsors.size();
 	}
 
-	public int getLostRepulsorCount() {
-		return lostRepulsors;
+	public double[] getRepulsorSemantics(int i) {
+		return repulsors.get(i).getTrainingDataOutputs();
 	}
 
-	public double[] getRepulsorSemantics(int i) {
+	public Individual getRepulsor(int i) {
 		return repulsors.get(i);
 	}
 
@@ -140,13 +139,14 @@ public class Population implements Serializable {
 		return individuals.get(index);
 	}
 
-	public boolean addRepulsor(double[] semantics) {
+	public boolean addRepulsor(Individual newRepulsor, int maxNum) {
+		double[] semantics = newRepulsor.getTrainingDataOutputs();
 		boolean add = true;
 		// add semantics if not already in list of repulsors
 		for (int r = 0; r < repulsors.size(); r++){
 			boolean same = true;
-			for (int d = 0; d<repulsors.get(r).length; d++){
-				if (semantics[d]!=repulsors.get(r)[d]){
+			for (int d = 0; d<getRepulsorSemantics(r).length; d++){
+				if (semantics[d]!=getRepulsorSemantics(r)[d]){
 					same = false;
 					break;
 				}
@@ -157,8 +157,25 @@ public class Population implements Serializable {
 			}
 
 		}
-		if (add)
-			repulsors.add(semantics);
+		if (add){
+			if (repulsors.size() < maxNum){
+				repulsors.add(newRepulsor);
+			} else {
+				// replace the one with the best severity or do nothing
+				int b_idx = 0;
+				double b_sev = repulsors.get(0).getOverfitSeverity();
+				for (int r = 1; r < repulsors.size(); r++){
+					if (repulsors.get(r).getOverfitSeverity() > b_sev){
+						b_sev = repulsors.get(r).getOverfitSeverity();
+						b_idx = r;
+					}
+				}
+				if (newRepulsor.getOverfitSeverity() < b_sev){
+					repulsors.remove(b_idx);
+					repulsors.add(newRepulsor);
+				}
+			}
+		}
 		return add;
 	}
 
@@ -199,10 +216,10 @@ public class Population implements Serializable {
 				boolean iIsRepulsor = false;
 				boolean jIsRepulsor = false;
 				for (int r = 0; r < repulsors.size(); r++){
-					double d_i = individuals.get(i).calculateTrainingSemanticDistance(repulsors.get(r));
+					double d_i = individuals.get(i).calculateTrainingSemanticDistance(getRepulsorSemantics(r));
 					if (d_i == 0)
 						iIsRepulsor = true;
-					double d_j = individuals.get(j).calculateTrainingSemanticDistance(repulsors.get(r));
+					double d_j = individuals.get(j).calculateTrainingSemanticDistance(getRepulsorSemantics(r));
 					if (d_j == 0)
 						jIsRepulsor = true;
 					iDominatesJ = (iDominatesJ && d_i > d_j);
