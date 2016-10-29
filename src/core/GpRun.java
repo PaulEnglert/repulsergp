@@ -280,7 +280,7 @@ public class GpRun implements Serializable {
 			}
 			Utils.log(Utils.LogTag.FITNESSTRAIN, outTrain);
 		}
-		if (logSemantics){
+		if (logSemantics && (currentGeneration)%50==0){
 			for (int i = 0; i < population.getSize(); i++){
 				Individual ind = population.getIndividual(i);
 				String out = ""+Utils.format(ind.getTrainingDataOutputs()[0]);
