@@ -31,6 +31,7 @@ public class Main {
 	public static int VALIDATION_ELITE_SIZE = 50;
 	public static boolean USE_ONLY_BEST_AS_REP_CANDIDATE = true;
 	public static boolean OVERFIT_BY_MEDIAN = true;
+	public static boolean AGGREGATE_REPULSORS = true;
 
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
@@ -92,6 +93,7 @@ public class Main {
 			gp.setValidationEliteSize(VALIDATION_ELITE_SIZE);
 			gp.setUseOnlyBestAsRepCandidate(USE_ONLY_BEST_AS_REP_CANDIDATE);
 			gp.setOverfitByMedian(OVERFIT_BY_MEDIAN);
+			gp.setAggregateRepulsors(AGGREGATE_REPULSORS);
 
 			gp.initialize();
 

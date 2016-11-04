@@ -3,6 +3,7 @@ package core;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import utils.Utils;
 
 public class Population implements Serializable {
 
@@ -179,7 +180,7 @@ public class Population implements Serializable {
 		return add;
 	}
 
-	public void nsgaIISort(){
+	public void nsgaIISort(boolean aggregateRepulsors){
 		// check if there are repulsors to work with
 		if (repulsors.size() == 0){
 			// System.out.println("Skipping NSGA II Sort due to empty list of repulsors.");
@@ -191,18 +192,20 @@ public class Population implements Serializable {
 		int[] dominationCounts = new int[individuals.size()];	// for each individual the number of individuals that dominate it are saved here
 		Object[] dominatedIndividuals = new Object[individuals.size()]; // for each individual all indexes of individuals that it dominates are saved here
 
-		performFastNonDominationSort(dominationFront, dominationCounts, dominatedIndividuals);
+		performFastNonDominationSort(dominationFront, dominationCounts, dominatedIndividuals, aggregateRepulsors);
 
 		int front = 1;
+		Utils.log(Utils.LogTag.LOG,"\tIndividuals in Front "+front+": "+dominationFront.size());
 		while (dominationFront.size() != 0){
 			// System.out.println("Number of Individuals in front " + front + ": " + dominationFront.size());
 			dominationFront = extractNextFront(front, dominationFront, dominationCounts, dominatedIndividuals);
+			Utils.log(Utils.LogTag.LOG,"\tIndividuals in Front "+front+": "+dominationFront.size());
 			front++;
 		}
 
 	}
 
-	public void performFastNonDominationSort(ArrayList<Integer> dominationFront, int[] dominationCounts, Object[] dominatedIndividuals){
+	public void performFastNonDominationSort(ArrayList<Integer> dominationFront, int[] dominationCounts, Object[] dominatedIndividuals, boolean aggregateRepulsors){
 		// for each individual find the dominated individuals and count the times itself has been dominated
 		for(int i = 0; i < individuals.size(); i++){
 
@@ -211,31 +214,8 @@ public class Population implements Serializable {
 			for(int j = 0; j < individuals.size(); j++){
 				if (i == j) continue; // no need to compare to oneself
 				// determine domination of i over j, or vice versa based on fitness and all repulsor distances
-				boolean iDominatesJ = (individuals.get(i).getTrainingError() < individuals.get(j).getTrainingError());
-				boolean jDominatesI = !iDominatesJ;
-				boolean iIsRepulsor = false;
-				boolean jIsRepulsor = false;
-				for (int r = 0; r < repulsors.size(); r++){
-					double d_i = individuals.get(i).calculateTrainingSemanticDistance(getRepulsorSemantics(r));
-					if (d_i == 0)
-						iIsRepulsor = true;
-					double d_j = individuals.get(j).calculateTrainingSemanticDistance(getRepulsorSemantics(r));
-					if (d_j == 0)
-						jIsRepulsor = true;
-					iDominatesJ = (iDominatesJ && d_i > d_j);
-					jDominatesI = (jDominatesI && d_i < d_j);
-				}
-				// force domination if repulsor
-				if (iIsRepulsor && !jIsRepulsor){
-					iDominatesJ = false;
-					jDominatesI = true;
-				} else if (!iIsRepulsor && jIsRepulsor){
-					iDominatesJ = true;
-					jDominatesI = false;
-				} else if (iIsRepulsor && jIsRepulsor){
-					iDominatesJ = false;
-					jDominatesI = false;
-				}
+				boolean iDominatesJ = this.dominates(individuals.get(i), individuals.get(j), aggregateRepulsors);
+				boolean jDominatesI = this.dominates(individuals.get(j), individuals.get(i), aggregateRepulsors);
 				// update datastructures
 				if (iDominatesJ) // add j to set of dominated solutions of i
 					dInds.add(j);
@@ -269,5 +249,39 @@ public class Population implements Serializable {
 			}
 		}
 		return nextFront;
+	}
+
+	public boolean dominates(Individual i, Individual j, boolean aggregateRepulsors){
+		// determine domination of i over j, or vice versa based on fitness and all repulsor distances
+		boolean iDominatesJ = (i.getTrainingError() < j.getTrainingError());
+		double avgDistI = 0;
+		double avgDistJ = 0;
+		boolean iIsRepulsor = false;
+		boolean jIsRepulsor = false;
+		for (int r = 0; r < repulsors.size(); r++){
+			double d_i = i.calculateTrainingSemanticDistance(getRepulsorSemantics(r));
+			avgDistI += d_i;
+			if (d_i == 0)
+				iIsRepulsor = true;
+			double d_j = j.calculateTrainingSemanticDistance(getRepulsorSemantics(r));
+			avgDistJ += d_j;
+			if (d_j == 0)
+				jIsRepulsor = true;
+			iDominatesJ = (iDominatesJ && d_i > d_j);
+		}
+		// check (if aggregation should be used) whether i is in average further away from repulsors
+		avgDistI = avgDistI/repulsors.size();
+		avgDistJ = avgDistJ/repulsors.size();
+		if (aggregateRepulsors){
+			iDominatesJ = (i.getTrainingError() < j.getTrainingError()) && avgDistI > avgDistJ;
+		}
+		// force domination if repulsor
+		if (iIsRepulsor){
+			iDominatesJ = false;
+		} else if (!iIsRepulsor && jIsRepulsor){
+			iDominatesJ = true;
+		}	
+
+		return iDominatesJ;
 	}
 }

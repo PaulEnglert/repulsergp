@@ -36,6 +36,7 @@ public class GpRun implements Serializable {
 	protected int repulsorMaxNumber = 25;
 	protected boolean useOnlyBestAsRepCandidate = true;
 	protected boolean overfitByMedian = true;
+	protected boolean aggregateRepulsors = true;
 
 	// ##### state #####
 	protected Random randomGenerator;
@@ -235,12 +236,12 @@ public class GpRun implements Serializable {
 			}
 
 			population = offspring;
-			population.nsgaIISort(); // calculate ranks of new population
+			population.nsgaIISort(this.aggregateRepulsors); // calculate ranks of new population
 			updateCurrentBest();
 			if ((currentGeneration >= repulsorMinAge) && useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
 				currentBest.setOverfitSeverity(getOverfittingSeverity(currentBest));
 				population.addRepulsor(currentBest, repulsorMaxNumber);
-				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added "+newReps+" new repulsor (best was found to overfit)");
+				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added 1 new repulsor (best was found to overfit)"+"(Total: "+population.repulsors.size()+")");
 			}
 			printState();
 			currentGeneration++;
@@ -485,5 +486,8 @@ public class GpRun implements Serializable {
 
 	public void setOverfitByMedian(boolean flag) {
 		this.overfitByMedian = flag;
+	}
+	public void setAggregateRepulsors(boolean flag) {
+		this.aggregateRepulsors = flag;
 	}
 }

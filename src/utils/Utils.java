@@ -166,6 +166,9 @@ public class Utils {
 						case "data_header_lines":
 							dataHeaderLines = Integer.parseInt(parts[1]);
 							break;
+						case "aggregate_repulsors":
+							Main.AGGREGATE_REPULSORS = (Integer.parseInt(parts[1])==1);
+							break;
 					} 
 				} catch (Exception e){
 					log(LogTag.LOG, "Failed reading configuration: " + line);
