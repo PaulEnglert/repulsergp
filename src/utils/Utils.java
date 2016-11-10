@@ -169,7 +169,13 @@ public class Utils {
 						case "aggregate_repulsors":
 							Main.AGGREGATE_REPULSORS = (Integer.parseInt(parts[1])==1);
 							break;
-					} 
+						case "force_avoid_repulsors":
+							Main.FORCE_AVOID_REPULSORS = (Integer.parseInt(parts[1])==1);
+							break;
+						case "equality_delta":
+							Main.EQUALITY_DELTA = Double.parseDouble(parts[1]);
+							break;
+					}
 				} catch (Exception e){
 					log(LogTag.LOG, "Failed reading configuration: " + line);
 				}

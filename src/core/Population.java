@@ -13,6 +13,8 @@ public class Population implements Serializable {
 
 	protected ArrayList<Individual> repulsors;
 
+	protected double maximumDistance;
+
 	public Population() {
 		individuals = new ArrayList<Individual>();
 		repulsors = new ArrayList<Individual>();
@@ -112,6 +114,25 @@ public class Population implements Serializable {
 		return avg/individuals.size();
 	}
 
+	public void calculateMaxDistance(){
+		double maxD = 0;
+		for (int i = 0; i < individuals.size()-1; i++){
+			Individual ind1 = individuals.get(i);
+			int sems_length = ind1.getTrainingDataOutputs().length;
+			for (int j = i+1; j < individuals.size(); j++){
+				double d = 0;
+				Individual ind2 =  individuals.get(j);
+				for (int s = 0; s < sems_length; s++){
+					d += (ind2.getTrainingDataOutputs()[s]-ind1.getTrainingDataOutputs()[s])*(ind2.getTrainingDataOutputs()[s]-ind1.getTrainingDataOutputs()[s]);
+				}
+				d = Math.sqrt(d / sems_length);
+				if (d > maxD)
+					maxD = d;
+			}
+		}
+		this.maximumDistance = maxD;
+	}
+
 	public void addIndividual(Individual individual) {
 		individuals.add(individual);
 	}
@@ -127,6 +148,11 @@ public class Population implements Serializable {
 	public int getRepulsorsSize() {
 		return repulsors.size();
 	}
+
+	public double getMaximumDistance() {
+		return this.maximumDistance;
+	}
+
 
 	public double[] getRepulsorSemantics(int i) {
 		return repulsors.get(i).getTrainingDataOutputs();

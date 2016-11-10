@@ -37,6 +37,8 @@ public class GpRun implements Serializable {
 	protected boolean useOnlyBestAsRepCandidate = true;
 	protected boolean overfitByMedian = true;
 	protected boolean aggregateRepulsors = true;
+	protected boolean forceAvoidRepulsors = false;
+	protected double equalityDelta = 0;
 
 	// ##### state #####
 	protected Random randomGenerator;
@@ -44,6 +46,7 @@ public class GpRun implements Serializable {
 	protected Population population;
 	protected Population validationElite;
 	protected Individual currentBest;
+	protected int recreatedCount=0;
 
 	public GpRun(Data data) {
 		this.data = data;
@@ -99,7 +102,7 @@ public class GpRun implements Serializable {
 		}
 
 		updateCurrentBest();
-
+		population.calculateMaxDistance();
 		
 		if (id == 0){
 			Utils.log(Utils.LogTag.FITNESSTEST, "RID;Gen;Test Error;Size;Depth");
@@ -206,29 +209,33 @@ public class GpRun implements Serializable {
 			// generate a new offspring population
 			while (offspring.getSize() < population.getSize()) {
 				Individual p1, newIndividual;
-				p1 = selectParent();
-				// apply crossover
-				if (randomGenerator.nextDouble() < crossoverProbability) {
-					Individual p2 = selectParent();
-					newIndividual = applyStandardCrossover(p1, p2);
-				}
-				// apply mutation
-				else {
-					newIndividual = applyStandardMutation(p1);
-				}
+				do{
+					p1 = selectParent();
+					// apply crossover
+					if (randomGenerator.nextDouble() < crossoverProbability) {
+						Individual p2 = selectParent();
+						newIndividual = applyStandardCrossover(p1, p2);
+					}
+					// apply mutation
+					else {
+						newIndividual = applyStandardMutation(p1);
+					}
 
-				/*
-				 * add the new individual to the offspring population if its
-				 * depth is not higher than the maximum (applicable only if the
-				 * depth limit is enabled)
-				 */
-				if (applyDepthLimit && newIndividual.getDepth() > maximumDepth) {
-					newIndividual = p1;
-				} else {
-					newIndividual.evaluate(data);
-				}
+					/*
+					 * add the new individual to the offspring population if its
+					 * depth is not higher than the maximum (applicable only if the
+					 * depth limit is enabled)
+					 */
+					if (applyDepthLimit && newIndividual.getDepth() > maximumDepth) {
+						newIndividual = p1;
+					} else {
+						newIndividual.evaluate(data);
+					}
+				} while (this.forceAvoidRepulsors && this.isEqualToAnyRepulsor(newIndividual));
+
 				offspring.addIndividual(newIndividual);
 				tryAddToValidationElite(newIndividual);
+
 				if ((currentGeneration >= repulsorMinAge) && !useOnlyBestAsRepCandidate && isOverfitting(newIndividual)){
 					newIndividual.setOverfitSeverity(getOverfittingSeverity(newIndividual));
 					offspring.addRepulsor(newIndividual, repulsorMaxNumber);
@@ -238,11 +245,14 @@ public class GpRun implements Serializable {
 			population = offspring;
 			population.nsgaIISort(this.aggregateRepulsors); // calculate ranks of new population
 			updateCurrentBest();
+			population.calculateMaxDistance();
 			if ((currentGeneration >= repulsorMinAge) && useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
 				currentBest.setOverfitSeverity(getOverfittingSeverity(currentBest));
 				population.addRepulsor(currentBest, repulsorMaxNumber);
 				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added 1 new repulsor (best was found to overfit)"+"(Total: "+population.repulsors.size()+")");
 			}
+			if (this.forceAvoidRepulsors && population.getRepulsorsSize() > 0)
+				Utils.log(Utils.LogTag.LOG, "Individuals recreated due to equality to any repulser during variation phase: " + this.recreatedCount);
 			printState();
 			currentGeneration++;
 		}
@@ -355,6 +365,18 @@ public class GpRun implements Serializable {
 		else
 			return individual.getValidationError() > validationElite.getAverageFitness("validation");
 
+	}
+
+	protected boolean isEqualToAnyRepulsor(Individual ind){
+		// compute distance to all repulsers, if one of them is smaller then equalit delta, return false
+		for (int i = 0; i < population.getRepulsorsSize(); i++){
+			double d = ind.calculateTrainingSemanticDistance(population.getRepulsorSemantics(i));
+			if (d < population.getMaximumDistance()*this.equalityDelta){
+				this.recreatedCount++;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected double getOverfittingSeverity(Individual individual){
@@ -489,5 +511,12 @@ public class GpRun implements Serializable {
 	}
 	public void setAggregateRepulsors(boolean flag) {
 		this.aggregateRepulsors = flag;
+	}
+
+	public void setForceAvoidRepulsors(boolean flag) {
+		this.forceAvoidRepulsors = flag;
+	}
+	public void setEqualityDelta(double delta) {
+		this.equalityDelta = delta;
 	}
 }

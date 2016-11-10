@@ -32,6 +32,8 @@ public class Main {
 	public static boolean USE_ONLY_BEST_AS_REP_CANDIDATE = true;
 	public static boolean OVERFIT_BY_MEDIAN = true;
 	public static boolean AGGREGATE_REPULSORS = true;
+	public static boolean FORCE_AVOID_REPULSORS = false;
+	public static double EQUALITY_DELTA = 0;
 
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
@@ -50,6 +52,28 @@ public class Main {
 
 		if (!CONFIG_FILE.equals("")){
 			Utils.readConfigFile(CONFIG_FILE);
+			// TODO print out configuration here
+			Utils.log(Utils.LogTag.LOG, "\nThe following Configuration is being used:");
+			Utils.log(Utils.LogTag.LOG, "\tnumber_of_generations=" + NUMBER_OF_GENERATIONS);
+			Utils.log(Utils.LogTag.LOG, "\tnumber_of_runs=" + NUMBER_OF_RUNS);
+			Utils.log(Utils.LogTag.LOG, "\tpopulation_size=" + POPULATION_SIZE);
+			Utils.log(Utils.LogTag.LOG, "\ttournament_size=" + TOURNAMENT_SIZE);
+			Utils.log(Utils.LogTag.LOG, "\tapply_depth_limit=" + APPLY_DEPTH_LIMIT);
+			Utils.log(Utils.LogTag.LOG, "\tmaximum_depth=" + MAXIMUM_DEPTH);
+			Utils.log(Utils.LogTag.LOG, "\tmaximum_initial_depth=" + MAXIMUM_INITIAL_DEPTH);
+			Utils.log(Utils.LogTag.LOG, "\tcrossover_probability=" + CROSSOVER_PROBABILITY);
+			Utils.log(Utils.LogTag.LOG, "\tprint_at_each_generation=" + PRINT_AT_EACH_GENERATION);
+			Utils.log(Utils.LogTag.LOG, "\tvalidation_set_size=" + VALIDATION_SET_SIZE);
+			Utils.log(Utils.LogTag.LOG, "\trepulsor_min_age=" + REPULSOR_MIN_AGE);
+			Utils.log(Utils.LogTag.LOG, "\tsemantic_repulsor_max_number=" + SEMANTIC_REPULSOR_MAX_NUMBER);
+			Utils.log(Utils.LogTag.LOG, "\tvalidation_elite_size=" + VALIDATION_ELITE_SIZE);
+			Utils.log(Utils.LogTag.LOG, "\tuse_only_best_as_rep_candidate=" + USE_ONLY_BEST_AS_REP_CANDIDATE);
+			Utils.log(Utils.LogTag.LOG, "\toverfit_by_median=" + OVERFIT_BY_MEDIAN);
+			Utils.log(Utils.LogTag.LOG, "\tshuffle_validation_split=" + SHUFFLE_VALIDATION_SPLIT);
+			Utils.log(Utils.LogTag.LOG, "\tlog_semantics=" + LOG_SEMANTICS);
+			Utils.log(Utils.LogTag.LOG, "\taggregate_repulsors=" + AGGREGATE_REPULSORS);
+			Utils.log(Utils.LogTag.LOG, "\tforce_avoid_repulsors=" + FORCE_AVOID_REPULSORS);
+			Utils.log(Utils.LogTag.LOG, "\tequality_delta=" + EQUALITY_DELTA);
 		}
 		else{
 			System.out.println("WARNING: Running without the use of argument '-config <path to confguration file>', consider using 'java -jar GP.jar -config <path>' to gain controll over the parameters.\n");
@@ -94,6 +118,8 @@ public class Main {
 			gp.setUseOnlyBestAsRepCandidate(USE_ONLY_BEST_AS_REP_CANDIDATE);
 			gp.setOverfitByMedian(OVERFIT_BY_MEDIAN);
 			gp.setAggregateRepulsors(AGGREGATE_REPULSORS);
+			gp.setForceAvoidRepulsors(FORCE_AVOID_REPULSORS);
+			gp.setEqualityDelta(EQUALITY_DELTA);
 
 			gp.initialize();
 
