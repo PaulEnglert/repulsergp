@@ -46,7 +46,6 @@ public class GpRun implements Serializable {
 	protected Population population;
 	protected Population validationElite;
 	protected Individual currentBest;
-	protected int recreatedCount=0;
 
 	public GpRun(Data data) {
 		this.data = data;
@@ -207,8 +206,10 @@ public class GpRun implements Serializable {
 
 			int newReps = 0;
 			// generate a new offspring population
+			int recreatedCount = 0;
 			while (offspring.getSize() < population.getSize()) {
 				Individual p1, newIndividual;
+				boolean first_try=true;
 				do{
 					p1 = selectParent();
 					// apply crossover
@@ -231,6 +232,10 @@ public class GpRun implements Serializable {
 					} else {
 						newIndividual.evaluate(data);
 					}
+					if (!first_try){
+						recreatedCount++;
+					}
+					first_try=false;
 				} while (this.forceAvoidRepulsors && this.isEqualToAnyRepulsor(newIndividual));
 
 				offspring.addIndividual(newIndividual);
@@ -252,7 +257,7 @@ public class GpRun implements Serializable {
 				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added 1 new repulsor (best was found to overfit)"+"(Total: "+population.repulsors.size()+")");
 			}
 			if (this.forceAvoidRepulsors && population.getRepulsorsSize() > 0)
-				Utils.log(Utils.LogTag.LOG, "Individuals recreated due to equality to any repulser during variation phase: " + this.recreatedCount);
+				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+":Individuals recreated due to equality to any repulser during variation phase: " + recreatedCount);
 			printState();
 			currentGeneration++;
 		}
@@ -370,9 +375,9 @@ public class GpRun implements Serializable {
 	protected boolean isEqualToAnyRepulsor(Individual ind){
 		// compute distance to all repulsers, if one of them is smaller then equalit delta, return false
 		for (int i = 0; i < population.getRepulsorsSize(); i++){
-			double d = ind.calculateTrainingSemanticDistance(population.getRepulsorSemantics(i));
-			if (d < population.getMaximumDistance()*this.equalityDelta){
-				this.recreatedCount++;
+			Individual repulsor = population.getRepulsor(i);
+			double d = ind.calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs());
+			if (d < population.getCombinedMaximumDistance()*this.equalityDelta){
 				return true;
 			}
 		}

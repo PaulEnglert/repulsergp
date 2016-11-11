@@ -168,6 +168,17 @@ public class Individual implements Serializable {
 		return Math.sqrt(d / this.trainingDataOutputs.length);
 	}
 
+	public double calculateCombinedSemanticDistance(double[] dataPointTrain, double[] dataPointVal){
+		double d = 0;
+		for (int i = 0; i < dataPointTrain.length+dataPointVal.length; i++){
+			if (i < dataPointTrain.length)
+				d += (dataPointTrain[i]-this.trainingDataOutputs[i])*(dataPointTrain[i]-this.trainingDataOutputs[i]);
+			else
+				d += (dataPointVal[i-dataPointTrain.length]-this.validationDataOutputs[i-dataPointTrain.length])*(dataPointVal[i-dataPointTrain.length]-this.validationDataOutputs[i-dataPointTrain.length]);
+		}
+		return Math.sqrt(d / dataPointTrain.length+dataPointVal.length);
+	}
+
 	public int countElementsToEnd(int startingIndex) {
 		if (program.get(startingIndex) instanceof Terminal) {
 			return 1;

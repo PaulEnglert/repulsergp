@@ -14,6 +14,7 @@ public class Population implements Serializable {
 	protected ArrayList<Individual> repulsors;
 
 	protected double maximumDistance;
+	protected double combinedMaximumDistance;
 
 	public Population() {
 		individuals = new ArrayList<Individual>();
@@ -116,6 +117,7 @@ public class Population implements Serializable {
 
 	public void calculateMaxDistance(){
 		double maxD = 0;
+		double cMaxD = 0;
 		for (int i = 0; i < individuals.size()-1; i++){
 			Individual ind1 = individuals.get(i);
 			int sems_length = ind1.getTrainingDataOutputs().length;
@@ -125,12 +127,21 @@ public class Population implements Serializable {
 				for (int s = 0; s < sems_length; s++){
 					d += (ind2.getTrainingDataOutputs()[s]-ind1.getTrainingDataOutputs()[s])*(ind2.getTrainingDataOutputs()[s]-ind1.getTrainingDataOutputs()[s]);
 				}
+				double d_c = d;
 				d = Math.sqrt(d / sems_length);
 				if (d > maxD)
 					maxD = d;
+				// add validation distance to d_c
+				for (int s = 0; s < ind1.getValidationDataOutputs().length; s++){
+					d_c += (ind2.getValidationDataOutputs()[s]-ind1.getValidationDataOutputs()[s])*(ind2.getValidationDataOutputs()[s]-ind1.getValidationDataOutputs()[s]);
+				} 
+				d_c = Math.sqrt(d_c / ind1.getValidationDataOutputs().length);
+				if (d_c > maxD)
+					cMaxD = d_c;
 			}
 		}
 		this.maximumDistance = maxD;
+		this.combinedMaximumDistance = cMaxD;
 	}
 
 	public void addIndividual(Individual individual) {
@@ -151,6 +162,9 @@ public class Population implements Serializable {
 
 	public double getMaximumDistance() {
 		return this.maximumDistance;
+	}
+	public double getCombinedMaximumDistance() {
+		return this.combinedMaximumDistance;
 	}
 
 
@@ -220,13 +234,12 @@ public class Population implements Serializable {
 
 		performFastNonDominationSort(dominationFront, dominationCounts, dominatedIndividuals, aggregateRepulsors);
 
-		int front = 1;
+		int front = 0;
 		Utils.log(Utils.LogTag.LOG,"\tIndividuals in Front "+front+": "+dominationFront.size());
 		while (dominationFront.size() != 0){
-			// System.out.println("Number of Individuals in front " + front + ": " + dominationFront.size());
+			front++;
 			dominationFront = extractNextFront(front, dominationFront, dominationCounts, dominatedIndividuals);
 			Utils.log(Utils.LogTag.LOG,"\tIndividuals in Front "+front+": "+dominationFront.size());
-			front++;
 		}
 
 	}
@@ -285,11 +298,14 @@ public class Population implements Serializable {
 		boolean iIsRepulsor = false;
 		boolean jIsRepulsor = false;
 		for (int r = 0; r < repulsors.size(); r++){
-			double d_i = i.calculateTrainingSemanticDistance(getRepulsorSemantics(r));
+			Individual repulsor = repulsors.get(r);
+			// double d_i = i.calculateTrainingSemanticDistance(r.getTrainingDataOutputs());
+			double d_i = i.calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs());
 			avgDistI += d_i;
 			if (d_i == 0)
 				iIsRepulsor = true;
-			double d_j = j.calculateTrainingSemanticDistance(getRepulsorSemantics(r));
+			// double d_j = j.calculateTrainingSemanticDistance(r.getTrainingDataOutputs());
+			double d_j = j.calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs());
 			avgDistJ += d_j;
 			if (d_j == 0)
 				jIsRepulsor = true;
