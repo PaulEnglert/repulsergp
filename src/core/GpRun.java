@@ -236,7 +236,7 @@ public class GpRun implements Serializable {
 						recreatedCount++;
 					}
 					first_try=false;
-				} while (this.forceAvoidRepulsors && this.isEqualToAnyRepulsor(newIndividual));
+				} while (recreatedCount < 50000 && this.forceAvoidRepulsors && this.isEqualToAnyRepulsor(newIndividual));
 
 				offspring.addIndividual(newIndividual);
 				tryAddToValidationElite(newIndividual);
@@ -253,8 +253,11 @@ public class GpRun implements Serializable {
 			population.calculateMaxDistance();
 			if ((currentGeneration >= repulsorMinAge) && useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
 				currentBest.setOverfitSeverity(getOverfittingSeverity(currentBest));
-				population.addRepulsor(currentBest, repulsorMaxNumber);
-				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added 1 new repulsor (best was found to overfit)"+"(Total: "+population.repulsors.size()+")");
+				if (population.addRepulsor(currentBest, repulsorMaxNumber)){
+					Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added 1 new repulsor (best was found to overfit)"+"(Total: "+population.repulsors.size()+")");
+				} else {
+					Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": 1 new repulsor was discarded"+"(Total: "+population.repulsors.size()+")");
+				}
 			}
 			if (this.forceAvoidRepulsors && population.getRepulsorsSize() > 0)
 				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+":Individuals recreated due to equality to any repulser during variation phase: " + recreatedCount);
