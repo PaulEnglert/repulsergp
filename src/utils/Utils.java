@@ -148,8 +148,8 @@ public class Utils {
 						case "validation_elite_size":
 							Main.VALIDATION_ELITE_SIZE = Integer.parseInt(parts[1]);
 							break;
-						case "use_only_best_as_rep_candidate":
-							Main.USE_ONLY_BEST_AS_REP_CANDIDATE = (Integer.parseInt(parts[1]) == 1);
+						case "use_best_as_rep_candidate":
+							Main.USE_BEST_AS_REP_CANDIDATE = Integer.parseInt(parts[1]);
 							break;
 						case "overfit_by_median":
 							Main.OVERFIT_BY_MEDIAN = (Integer.parseInt(parts[1]) == 1);

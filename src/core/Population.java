@@ -55,6 +55,27 @@ public class Population implements Serializable {
 		return bestIndex;
 	}
 
+	public int[] getBestIndex(int count) {
+		ArrayList<Integer> sorted = new ArrayList<Integer>();
+		sorted.add(0);
+		for (int i = 1; i < individuals.size(); i++){
+			double indTe = individuals.get(i).getTrainingError();
+			for (int p = 0; p < sorted.size(); p++){
+				if (individuals.get(sorted.get(p)).getTrainingError() <= indTe) continue;
+				sorted.add(p, i);
+				break;
+			}
+			sorted.add(i);
+		}
+		int[] arr = new int[count];
+		for(int i = 0; i < count; i++) {
+		    if (sorted.get(i) != null) {
+		        arr[i] = sorted.get(i);
+		    }
+		}
+		return arr;
+	}
+
 	public Individual getWorst(String dataname) {
 		return individuals.get(getWorstIndex(dataname));
 	}

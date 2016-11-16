@@ -29,7 +29,7 @@ public class Main {
 	public static int REPULSOR_MIN_AGE = 10;
 	public static int SEMANTIC_REPULSOR_MAX_NUMBER = 50;
 	public static int VALIDATION_ELITE_SIZE = 50;
-	public static boolean USE_ONLY_BEST_AS_REP_CANDIDATE = true;
+	public static int USE_BEST_AS_REP_CANDIDATE = 1;
 	public static boolean OVERFIT_BY_MEDIAN = true;
 	public static boolean AGGREGATE_REPULSORS = true;
 	public static boolean FORCE_AVOID_REPULSORS = false;
@@ -67,7 +67,7 @@ public class Main {
 			Utils.log(Utils.LogTag.LOG, "\trepulsor_min_age=" + REPULSOR_MIN_AGE);
 			Utils.log(Utils.LogTag.LOG, "\tsemantic_repulsor_max_number=" + SEMANTIC_REPULSOR_MAX_NUMBER);
 			Utils.log(Utils.LogTag.LOG, "\tvalidation_elite_size=" + VALIDATION_ELITE_SIZE);
-			Utils.log(Utils.LogTag.LOG, "\tuse_only_best_as_rep_candidate=" + USE_ONLY_BEST_AS_REP_CANDIDATE);
+			Utils.log(Utils.LogTag.LOG, "\tuse_best_as_rep_candidate=" + USE_BEST_AS_REP_CANDIDATE);
 			Utils.log(Utils.LogTag.LOG, "\toverfit_by_median=" + OVERFIT_BY_MEDIAN);
 			Utils.log(Utils.LogTag.LOG, "\tshuffle_validation_split=" + SHUFFLE_VALIDATION_SPLIT);
 			Utils.log(Utils.LogTag.LOG, "\tlog_semantics=" + LOG_SEMANTICS);
@@ -115,7 +115,7 @@ public class Main {
 			gp.setRepulsorMinAge(REPULSOR_MIN_AGE);
 			gp.setRepulsorMaxNumber(SEMANTIC_REPULSOR_MAX_NUMBER);
 			gp.setValidationEliteSize(VALIDATION_ELITE_SIZE);
-			gp.setUseOnlyBestAsRepCandidate(USE_ONLY_BEST_AS_REP_CANDIDATE);
+			gp.setUseBestAsRepCandidate(USE_BEST_AS_REP_CANDIDATE);
 			gp.setOverfitByMedian(OVERFIT_BY_MEDIAN);
 			gp.setAggregateRepulsors(AGGREGATE_REPULSORS);
 			gp.setForceAvoidRepulsors(FORCE_AVOID_REPULSORS);

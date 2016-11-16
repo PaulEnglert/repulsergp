@@ -34,7 +34,7 @@ public class GpRun implements Serializable {
 	protected int validationEliteSize = 10;
 	protected int repulsorMinAge = 10;
 	protected int repulsorMaxNumber = 25;
-	protected boolean useOnlyBestAsRepCandidate = true;
+	protected int useBestAsRepCandidate = 1;
 	protected boolean overfitByMedian = true;
 	protected boolean aggregateRepulsors = true;
 	protected boolean forceAvoidRepulsors = false;
@@ -241,7 +241,7 @@ public class GpRun implements Serializable {
 				offspring.addIndividual(newIndividual);
 				tryAddToValidationElite(newIndividual);
 
-				if ((currentGeneration >= repulsorMinAge) && !useOnlyBestAsRepCandidate && isOverfitting(newIndividual)){
+				if ((currentGeneration >= repulsorMinAge) && useBestAsRepCandidate < 1 && isOverfitting(newIndividual)){
 					newIndividual.setOverfitSeverity(getOverfittingSeverity(newIndividual));
 					offspring.addRepulsor(newIndividual, repulsorMaxNumber);
 				}
@@ -251,14 +251,27 @@ public class GpRun implements Serializable {
 			population.nsgaIISort(this.aggregateRepulsors); // calculate ranks of new population
 			updateCurrentBest();
 			population.calculateMaxDistance();
-			if ((currentGeneration >= repulsorMinAge) && useOnlyBestAsRepCandidate && isOverfitting(currentBest)){
+			if ((currentGeneration >= repulsorMinAge) && useBestAsRepCandidate == 1 && isOverfitting(currentBest)){
 				currentBest.setOverfitSeverity(getOverfittingSeverity(currentBest));
 				if (population.addRepulsor(currentBest, repulsorMaxNumber)){
-					Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added 1 new repulsor (best was found to overfit)"+"(Total: "+population.repulsors.size()+")");
+					Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added 1 new repulsor (best was found to overfit) (Total: "+population.repulsors.size()+")");
 				} else {
 					Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": 1 new repulsor was discarded"+"(Total: "+population.repulsors.size()+")");
 				}
-			}
+			} else if ((currentGeneration >= repulsorMinAge) && useBestAsRepCandidate > 1){
+				int[] totest = population.getBestIndex(useBestAsRepCandidate);
+				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Testing " + totest.length + " individuals for overfitting");
+				int used = 0;
+				for (int i = 0; i < totest.length; i++){
+					Individual ind = population.getIndividual(totest[i]);
+					if (isOverfitting(ind)){
+						ind.setOverfitSeverity(getOverfittingSeverity(ind));
+						if (population.addRepulsor(ind, repulsorMaxNumber))
+							used++;
+					}
+				}
+				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added " + used + " new repulsor (Total: "+population.repulsors.size()+")");
+			} 
 			if (this.forceAvoidRepulsors && population.getRepulsorsSize() > 0)
 				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+":Individuals recreated due to equality to any repulser during variation phase: " + recreatedCount);
 			printState();
@@ -510,8 +523,8 @@ public class GpRun implements Serializable {
 		this.validationEliteSize = size;
 	}
 	
-	public void setUseOnlyBestAsRepCandidate(boolean flag) {
-		this.useOnlyBestAsRepCandidate = flag;
+	public void setUseBestAsRepCandidate(int count) {
+		this.useBestAsRepCandidate = count;
 	}
 
 	public void setOverfitByMedian(boolean flag) {
