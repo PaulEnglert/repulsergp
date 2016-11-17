@@ -60,12 +60,15 @@ public class Population implements Serializable {
 		sorted.add(0);
 		for (int i = 1; i < individuals.size(); i++){
 			double indTe = individuals.get(i).getTrainingError();
+			boolean added = false;
 			for (int p = 0; p < sorted.size(); p++){
 				if (individuals.get(sorted.get(p)).getTrainingError() <= indTe) continue;
 				sorted.add(p, i);
+				added=true;
 				break;
 			}
-			sorted.add(i);
+			if (!added)
+				sorted.add(i);
 		}
 		int[] arr = new int[count];
 		for(int i = 0; i < count; i++) {
