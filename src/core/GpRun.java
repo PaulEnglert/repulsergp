@@ -39,6 +39,7 @@ public class GpRun implements Serializable {
 	protected boolean aggregateRepulsors = true;
 	protected boolean forceAvoidRepulsors = false;
 	protected double equalityDelta = 0;
+	protected boolean trueParetoSelection = false;
 
 	// ##### state #####
 	protected Random randomGenerator;
@@ -91,7 +92,7 @@ public class GpRun implements Serializable {
 		randomGenerator = new Random();
 		currentGeneration = 0;
 
-		validationElite = new Population();
+		validationElite = new Population(this.trueParetoSelection);
 
 		// initialize and evaluate population
 		rampedHalfAndHalfInitialization();
@@ -101,8 +102,9 @@ public class GpRun implements Serializable {
 		}
 
 		updateCurrentBest();
-		population.calculateMaxDistance();
-		
+		if ( this.forceAvoidRepulsors )
+			population.calculateMaxDistance();
+
 		if (id == 0){
 			Utils.log(Utils.LogTag.FITNESSTEST, "RID;Gen;Test Error;Size;Depth");
 			Utils.log(Utils.LogTag.FITNESSTRAIN, "RID;Gen;Training Error;Size;Depth;pr;#rep");
@@ -127,7 +129,7 @@ public class GpRun implements Serializable {
 		 */
 		int individualsPerDepth = populationSize / maximumInitialDepth;
 		int remainingIndividuals = populationSize % maximumInitialDepth;
-		population = new Population();
+		population = new Population(this.trueParetoSelection);
 		int fullIndividuals, growIndividuals;
 
 		for (int depth = 1; depth <= maximumInitialDepth; depth++) {
@@ -199,7 +201,7 @@ public class GpRun implements Serializable {
 		// evolve for a given number of generations
 		while (currentGeneration <= numberOfGenerations) {
 			System.out.println("Generation " + currentGeneration);
-			Population offspring = new Population();
+			Population offspring = new Population(this.trueParetoSelection);
 			offspring.addIndividual(population.getBest());
 			if (currentGeneration >= repulsorMinAge)
 				offspring.repulsors = population.repulsors;
@@ -211,10 +213,10 @@ public class GpRun implements Serializable {
 				Individual p1, newIndividual;
 				boolean first_try=true;
 				do{
-					p1 = selectParent();
+					p1 = selectParent(currentGeneration);
 					// apply crossover
 					if (randomGenerator.nextDouble() < crossoverProbability) {
-						Individual p2 = selectParent();
+						Individual p2 = selectParent(currentGeneration);
 						newIndividual = applyStandardCrossover(p1, p2);
 					}
 					// apply mutation
@@ -250,7 +252,8 @@ public class GpRun implements Serializable {
 			population = offspring;
 			population.nsgaIISort(this.aggregateRepulsors); // calculate ranks of new population
 			updateCurrentBest();
-			population.calculateMaxDistance();
+			if ( this.forceAvoidRepulsors )
+				population.calculateMaxDistance();
 			if ((currentGeneration >= repulsorMinAge) && useBestAsRepCandidate == 1 && isOverfitting(currentBest)){
 				currentBest.setOverfitSeverity(getOverfittingSeverity(currentBest));
 				if (population.addRepulsor(currentBest, repulsorMaxNumber)){
@@ -271,7 +274,7 @@ public class GpRun implements Serializable {
 					}
 				}
 				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Added " + used + " new repulsor (Total: "+population.repulsors.size()+")");
-			} 
+			}
 			if (this.forceAvoidRepulsors && population.getRepulsorsSize() > 0)
 				Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+":Individuals recreated due to equality to any repulser during variation phase: " + recreatedCount);
 			printState();
@@ -283,13 +286,13 @@ public class GpRun implements Serializable {
 
 	protected void printState() {
 		if (printAtEachGeneration) {
-			// test/unseen data 
+			// test/unseen data
 			Utils.log(Utils.LogTag.FITNESSTEST, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getUnseenError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth()));
 			// validation data
 			Utils.log(Utils.LogTag.FITNESSVALIDATION, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getValidationError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth()));
 			// training data
 			Utils.log(Utils.LogTag.FITNESSTRAIN, ""+id+";"+currentGeneration+";"+Utils.format(currentBest.getTrainingError())+";"+Utils.format(currentBest.getSize())+";"+Utils.format(currentBest.getDepth())
-								+";"+Utils.format(currentBest.getRank()) + ";"+Utils.format(population.getRepulsorsSize()));
+					+";"+Utils.format(currentBest.getRank()) + ";"+Utils.format(population.getRepulsorsSize()));
 			// log repulser distances
 			for (int r = 0; r < population.getRepulsorsSize(); r++){
 				Utils.log(Utils.LogTag.REPULSERDISTANCES, ""+id+";"+currentGeneration+";"+population.getRepulsor(r).getId()+";"+Utils.format(currentBest.calculateTrainingSemanticDistance(population.getRepulsorSemantics(r))));
@@ -316,15 +319,25 @@ public class GpRun implements Serializable {
 	}
 
 	// tournament selection
-	protected Individual selectParent() {
-		Population tournamentPopulation = new Population();
+	protected Individual selectParent(int generation) {
+		Population tournamentPopulation = new Population(this.trueParetoSelection);
 		// int tournamentSize = (int) (0.05 * population.getSize());
 		if (tournamentSize == 0) tournamentSize = 1;
 		for (int i = 0; i < tournamentSize; i++) {
 			int index = randomGenerator.nextInt(population.getSize());
 			tournamentPopulation.addIndividual(population.getIndividual(index));
 		}
-		return tournamentPopulation.getNonDominatedBest();
+		if (repulsorMinAge < generation-1 && population.getRepulsorsSize() > 0) {
+			Individual ndb = tournamentPopulation.getNonDominatedBest();
+			//Individual b = tournamentPopulation.getBest();
+			//if (this.trueParetoSelection && ndb.getId() != b.getId()) {
+				//Utils.log(Utils.LogTag.LOG, "\tParent selection used random non-dominated individual: " + ndb.getId() +
+				//		" instead of best (" + b.getId() + ")");
+			//}
+			return ndb;
+		} else {
+			return tournamentPopulation.getBest();
+		}
 	}
 
 	protected Individual applyStandardCrossover(Individual p1, Individual p2) {
@@ -507,6 +520,10 @@ public class GpRun implements Serializable {
 		this.populationSize = populationSize;
 	}
 
+	public void setTrueParetoSelection(boolean flag) {
+		this.trueParetoSelection = flag;
+	}
+
 	public void setTournamentSize(int tournamentSize) {
 		this.tournamentSize = tournamentSize;
 	}
@@ -522,7 +539,7 @@ public class GpRun implements Serializable {
 	public void setValidationEliteSize(int size) {
 		this.validationEliteSize = size;
 	}
-	
+
 	public void setUseBestAsRepCandidate(int count) {
 		this.useBestAsRepCandidate = count;
 	}

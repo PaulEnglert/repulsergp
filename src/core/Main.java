@@ -25,6 +25,7 @@ public class Main {
 	public static boolean SHUFFLE_VALIDATION_SPLIT = false;
 
 	// repulsor parameters
+	public static boolean TRUE_PARETO_SELECTION = false;
 	public static double VALIDATION_SET_SIZE = 0.2;
 	public static int REPULSOR_MIN_AGE = 10;
 	public static int SEMANTIC_REPULSOR_MAX_NUMBER = 50;
@@ -52,38 +53,29 @@ public class Main {
 
 		if (!CONFIG_FILE.equals("")){
 			Utils.readConfigFile(CONFIG_FILE);
-			// TODO print out configuration here
-			Utils.log(Utils.LogTag.LOG, "\nThe following Configuration is being used:");
-			Utils.log(Utils.LogTag.LOG, "\tnumber_of_generations=" + NUMBER_OF_GENERATIONS);
-			Utils.log(Utils.LogTag.LOG, "\tnumber_of_runs=" + NUMBER_OF_RUNS);
-			Utils.log(Utils.LogTag.LOG, "\tpopulation_size=" + POPULATION_SIZE);
-			Utils.log(Utils.LogTag.LOG, "\ttournament_size=" + TOURNAMENT_SIZE);
-			Utils.log(Utils.LogTag.LOG, "\tapply_depth_limit=" + APPLY_DEPTH_LIMIT);
-			Utils.log(Utils.LogTag.LOG, "\tmaximum_depth=" + MAXIMUM_DEPTH);
-			Utils.log(Utils.LogTag.LOG, "\tmaximum_initial_depth=" + MAXIMUM_INITIAL_DEPTH);
-			Utils.log(Utils.LogTag.LOG, "\tcrossover_probability=" + CROSSOVER_PROBABILITY);
-			Utils.log(Utils.LogTag.LOG, "\tprint_at_each_generation=" + PRINT_AT_EACH_GENERATION);
-			Utils.log(Utils.LogTag.LOG, "\tvalidation_set_size=" + VALIDATION_SET_SIZE);
-			Utils.log(Utils.LogTag.LOG, "\trepulsor_min_age=" + REPULSOR_MIN_AGE);
-			Utils.log(Utils.LogTag.LOG, "\tsemantic_repulsor_max_number=" + SEMANTIC_REPULSOR_MAX_NUMBER);
-			Utils.log(Utils.LogTag.LOG, "\tvalidation_elite_size=" + VALIDATION_ELITE_SIZE);
-			Utils.log(Utils.LogTag.LOG, "\tuse_best_as_rep_candidate=" + USE_BEST_AS_REP_CANDIDATE);
-			Utils.log(Utils.LogTag.LOG, "\toverfit_by_median=" + OVERFIT_BY_MEDIAN);
-			Utils.log(Utils.LogTag.LOG, "\tshuffle_validation_split=" + SHUFFLE_VALIDATION_SPLIT);
-			Utils.log(Utils.LogTag.LOG, "\tlog_semantics=" + LOG_SEMANTICS);
-			Utils.log(Utils.LogTag.LOG, "\taggregate_repulsors=" + AGGREGATE_REPULSORS);
-			Utils.log(Utils.LogTag.LOG, "\tforce_avoid_repulsors=" + FORCE_AVOID_REPULSORS);
-			Utils.log(Utils.LogTag.LOG, "\tequality_delta=" + EQUALITY_DELTA);
 		}
-		else{
-			System.out.println("WARNING: Running without the use of argument '-config <path to confguration file>', consider using 'java -jar GP.jar -config <path>' to gain controll over the parameters.\n");
-			System.out.println("The following can be used (and is default) as a configuration(.ini) file:");
-			System.out.println("number_of_generations=6\nnumber_of_runs=2\ndata_filename=dataset\npopulation_size=100\ntournament_size=4\napply_depth_limit=1\nmaximum_depth=17\nmaximum_initial_depth=6\ncrossover_probability=0.9\nprint_at_each_generation=1"+
-				"validation_set_size=0.2\nrepulsor_min_age=10\nsemantic_repulsor_max_number=50\nvalidation_elite_size=10\nuse_only_best_as_rep_candidate\noverfit_by_median=1\nlog_semantics=0");
-			Utils.log(Utils.LogTag.LOG, "Configuration:");
-			Utils.log(Utils.LogTag.LOG, "number_of_generations=6\nnumber_of_runs=2\ndata_filename=dataset\npopulation_size=100\ntournament_size=4\napply_depth_limit=1\nmaximum_depth=17\nmaximum_initial_depth=6\ncrossover_probability=0.9\nprint_at_each_generation=1"+
-				"validation_set_size=0.2\nrepulsor_min_age=10\nsemantic_repulsor_max_number=50\nvalidation_elite_size=10\nuse_only_best_as_rep_candidate\noverfit_by_median=1\nlog_semantics=0");
-		}
+		Utils.log(Utils.LogTag.LOG, "\nThe following Configuration is being used:");
+		Utils.log(Utils.LogTag.LOG, "\tnumber_of_generations=" + NUMBER_OF_GENERATIONS);
+		Utils.log(Utils.LogTag.LOG, "\tnumber_of_runs=" + NUMBER_OF_RUNS);
+		Utils.log(Utils.LogTag.LOG, "\tpopulation_size=" + POPULATION_SIZE);
+		Utils.log(Utils.LogTag.LOG, "\ttournament_size=" + TOURNAMENT_SIZE);
+		Utils.log(Utils.LogTag.LOG, "\tapply_depth_limit=" + APPLY_DEPTH_LIMIT);
+		Utils.log(Utils.LogTag.LOG, "\tmaximum_depth=" + MAXIMUM_DEPTH);
+		Utils.log(Utils.LogTag.LOG, "\tmaximum_initial_depth=" + MAXIMUM_INITIAL_DEPTH);
+		Utils.log(Utils.LogTag.LOG, "\tcrossover_probability=" + CROSSOVER_PROBABILITY);
+		Utils.log(Utils.LogTag.LOG, "\tprint_at_each_generation=" + PRINT_AT_EACH_GENERATION);
+		Utils.log(Utils.LogTag.LOG, "\tvalidation_set_size=" + VALIDATION_SET_SIZE);
+		Utils.log(Utils.LogTag.LOG, "\trepulsor_min_age=" + REPULSOR_MIN_AGE);
+		Utils.log(Utils.LogTag.LOG, "\tsemantic_repulsor_max_number=" + SEMANTIC_REPULSOR_MAX_NUMBER);
+		Utils.log(Utils.LogTag.LOG, "\tvalidation_elite_size=" + VALIDATION_ELITE_SIZE);
+		Utils.log(Utils.LogTag.LOG, "\tuse_best_as_rep_candidate=" + USE_BEST_AS_REP_CANDIDATE);
+		Utils.log(Utils.LogTag.LOG, "\toverfit_by_median=" + OVERFIT_BY_MEDIAN);
+		Utils.log(Utils.LogTag.LOG, "\tshuffle_validation_split=" + SHUFFLE_VALIDATION_SPLIT);
+		Utils.log(Utils.LogTag.LOG, "\tlog_semantics=" + LOG_SEMANTICS);
+		Utils.log(Utils.LogTag.LOG, "\taggregate_repulsors=" + AGGREGATE_REPULSORS);
+		Utils.log(Utils.LogTag.LOG, "\tforce_avoid_repulsors=" + FORCE_AVOID_REPULSORS);
+		Utils.log(Utils.LogTag.LOG, "\tequality_delta=" + EQUALITY_DELTA);
+		Utils.log(Utils.LogTag.LOG, "\ttrue_pareto_selection=" + TRUE_PARETO_SELECTION);
 
 		if (LOG_SEMANTICS)
 			Utils.attachLogger(""+startTime, Utils.LogTag.SEMANTICS);
@@ -105,6 +97,7 @@ public class Main {
 
 			// set parameters
 			gp.setPopulationSize(POPULATION_SIZE);
+			gp.setTrueParetoSelection(TRUE_PARETO_SELECTION);
 			gp.setTournamentSize(TOURNAMENT_SIZE);
 			gp.setApplyDepthLimit(APPLY_DEPTH_LIMIT);
 			gp.setMaximumDepth(MAXIMUM_DEPTH);

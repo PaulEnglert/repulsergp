@@ -9,6 +9,8 @@ public class Population implements Serializable {
 
 	private static final long serialVersionUID = 7L;
 
+	protected static boolean trueParetoSelection = false;
+
 	protected ArrayList<Individual> individuals;
 
 	protected ArrayList<Individual> repulsors;
@@ -16,33 +18,60 @@ public class Population implements Serializable {
 	protected double maximumDistance;
 	protected double combinedMaximumDistance;
 
+	public Population(boolean trueParetoSelection) {
+		Population.trueParetoSelection = trueParetoSelection;
+		individuals = new ArrayList<Individual>();
+		repulsors = new ArrayList<Individual>();
+	}
 	public Population() {
 		individuals = new ArrayList<Individual>();
 		repulsors = new ArrayList<Individual>();
 	}
 
+	// return best individual solely based on fitness
 	public Individual getBest() {
 		return individuals.get(getBestIndex());
 	}
 
+	// return best individual based in nondomination (requires individuals to have a rank precalculated)
 	public Individual getNonDominatedBest(){
-		if (repulsors.size() == 0)
-			return getBest();
-
-		int bestIndex = 0;
-		Individual best = individuals.get(bestIndex);
-		for (int i = 1; i < individuals.size(); i++) {
-			if (individuals.get(i).getRank() < best.getRank()) {
-				best = individuals.get(i);
-				bestIndex = i;
-			} else if (individuals.get(i).getRank() == best.getRank() && individuals.get(i).getTrainingError() < best.getTrainingError()) {
-				best = individuals.get(i);
-				bestIndex = i;
+		Individual best = null;
+		if (trueParetoSelection){
+			ArrayList<Integer> bestIndices = new ArrayList<Integer>();
+			bestIndices.add(0);
+			System.out.println("\t"+individuals.get(0).getRank());
+			int currentBestRank = individuals.get(0).getRank();
+			for (int i = 1; i < individuals.size(); i++) {
+				Individual opponent = individuals.get(i);
+				if (opponent.getRank() <  currentBestRank){ // found someone with a better rank
+					bestIndices = new ArrayList<Integer>();
+					currentBestRank = opponent.getRank();
+					bestIndices.add(i);
+				} else if (opponent.getRank() == currentBestRank){ // same rank
+					bestIndices.add(i);
+				} else {
+					// ignore individual with worse rank
+				}
+			}
+			int idx = (int)(Math.random() * bestIndices.size());
+			best = individuals.get(bestIndices.get(idx));
+		} else {
+			int bestIndex = 0;
+			best = individuals.get(bestIndex);
+			for (int i = 1; i < individuals.size(); i++) {
+				if (individuals.get(i).getRank() < best.getRank()) {
+					best = individuals.get(i);
+					bestIndex = i;
+				} else if (individuals.get(i).getRank() == best.getRank() && individuals.get(i).getTrainingError() < best.getTrainingError()) {
+					best = individuals.get(i);
+					bestIndex = i;
+				}
 			}
 		}
 		return best;
 	}
 
+	// return best individual solely based on fitness
 	public int getBestIndex() {
 		int bestIndex = 0;
 		double bestTrainingError = individuals.get(bestIndex).getTrainingError();
@@ -55,6 +84,7 @@ public class Population implements Serializable {
 		return bestIndex;
 	}
 
+	// return best n individuals solely based on fitness
 	public int[] getBestIndex(int count) {
 		ArrayList<Integer> sorted = new ArrayList<Integer>();
 		sorted.add(0);
@@ -72,9 +102,9 @@ public class Population implements Serializable {
 		}
 		int[] arr = new int[count];
 		for(int i = 0; i < count; i++) {
-		    if (sorted.get(i) != null) {
-		        arr[i] = sorted.get(i);
-		    }
+			if (sorted.get(i) != null) {
+				arr[i] = sorted.get(i);
+			}
 		}
 		return arr;
 	}
@@ -158,7 +188,7 @@ public class Population implements Serializable {
 				// add validation distance to d_c
 				for (int s = 0; s < ind1.getValidationDataOutputs().length; s++){
 					d_c += (ind2.getValidationDataOutputs()[s]-ind1.getValidationDataOutputs()[s])*(ind2.getValidationDataOutputs()[s]-ind1.getValidationDataOutputs()[s]);
-				} 
+				}
 				d_c = Math.sqrt(d_c / ind1.getValidationDataOutputs().length);
 				if (d_c > maxD)
 					cMaxD = d_c;
@@ -346,7 +376,7 @@ public class Population implements Serializable {
 			iDominatesJ = false;
 		} else if (!iIsRepulsor && jIsRepulsor){
 			iDominatesJ = true;
-		}	
+		}
 
 		return iDominatesJ;
 	}

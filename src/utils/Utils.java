@@ -175,6 +175,9 @@ public class Utils {
 						case "equality_delta":
 							Main.EQUALITY_DELTA = Double.parseDouble(parts[1]);
 							break;
+						case "true_pareto_selection":
+							Main.TRUE_PARETO_SELECTION = (Integer.parseInt(parts[1]) == 1);
+							break;
 					}
 				} catch (Exception e){
 					log(LogTag.LOG, "Failed reading configuration: " + line);
