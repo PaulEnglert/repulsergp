@@ -27,6 +27,16 @@ public class Individual implements Serializable {
 	// repulser data
 	protected double overfitSeverity;
 
+	public boolean getIsOverfitting() {
+		return isOverfitting;
+	}
+
+	public void setIsOverfitting(boolean overfitting) {
+		isOverfitting = overfitting;
+	}
+
+	protected boolean isOverfitting;
+
 	protected int evaluateIndex;
 	protected int maximumDepthAchieved;
 	protected int depthCalculationIndex;

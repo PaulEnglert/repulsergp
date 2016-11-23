@@ -15,14 +15,14 @@ import core.Data;
 import core.Main;
 
 public class Utils {
-	
+
 	public enum LogTag {
-	    SEMANTICS,
-	    FITNESSTEST,
-	    FITNESSTRAIN,
-	    FITNESSVALIDATION,
-	    REPULSERDISTANCES,
-	    LOG
+		SEMANTICS,
+		FITNESSTEST,
+		FITNESSTRAIN,
+		FITNESSVALIDATION,
+		REPULSERDISTANCES,
+		LOG
 	}
 
 	private static PrintWriter fsSemantics = null;
@@ -51,13 +51,13 @@ public class Utils {
 					temporaryValue = trainingData[currentIndex];
 					trainingData[currentIndex] = trainingData[randomIndex];
 					trainingData[randomIndex] = temporaryValue;
-				}				
+				}
 			}
 			// split data set
 			int numTrainInstances = (int)Math.ceil(trainingData.length*(1-validationSetSize));
 			double[][] trainingNewData = Arrays.copyOfRange(trainingData, 0, numTrainInstances);
 			double[][] validationData = Arrays.copyOfRange(trainingData, numTrainInstances, trainingData.length);
-			
+
 			log(LogTag.LOG, "\n\tRead training data from "+dataTrainFilename+" with "+trainingData.length+" instances");
 			log(LogTag.LOG, "\tRead test data from " + dataTestFilename+ " with "+unseenData.length+" instances");
 			log(LogTag.LOG, "\tSplit original trainingset (" + trainingData.length + " instances) by "+validationSetSize+" into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
@@ -111,16 +111,16 @@ public class Utils {
 							break;
 						case "number_of_runs":
 							Main.NUMBER_OF_RUNS = Integer.parseInt(parts[1]);
-							break; 	
+							break;
 						case "data_train_filename":
 							Main.DATA_TRAIN_FILENAME = parts[1];
-							break; 
+							break;
 						case "data_test_filename":
 							Main.DATA_TEST_FILENAME = parts[1];
-							break; 	
+							break;
 						case "population_size":
 							Main.POPULATION_SIZE = Integer.parseInt(parts[1]);
-							break;	
+							break;
 						case "apply_depth_limit":
 							Main.APPLY_DEPTH_LIMIT = (Integer.parseInt(parts[1]) == 1);
 							break;
@@ -177,6 +177,12 @@ public class Utils {
 							break;
 						case "true_pareto_selection":
 							Main.TRUE_PARETO_SELECTION = (Integer.parseInt(parts[1]) == 1);
+							break;
+						case "domination_exclude_fitness":
+							Main.DOMINATION_EXCLUDE_FITNESS = (Integer.parseInt(parts[1]) == 1);
+							break;
+						case "merge_repulsors":
+							Main.MERGE_REPULSORS = (Integer.parseInt(parts[1]) == 1);
 							break;
 					}
 				} catch (Exception e){

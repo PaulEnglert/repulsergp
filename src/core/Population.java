@@ -1,8 +1,10 @@
 package core;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import utils.Utils;
 
 public class Population implements Serializable {
@@ -10,6 +12,8 @@ public class Population implements Serializable {
 	private static final long serialVersionUID = 7L;
 
 	protected static boolean trueParetoSelection = false;
+	protected static boolean mergeRepulsors = false;
+	protected static boolean dominationExcludeFitness = false;
 
 	protected ArrayList<Individual> individuals;
 
@@ -18,8 +22,11 @@ public class Population implements Serializable {
 	protected double maximumDistance;
 	protected double combinedMaximumDistance;
 
-	public Population(boolean trueParetoSelection) {
+	public Population(boolean trueParetoSelection, boolean dominationExcludeFitness, boolean mergeRepulsors) {
+		Population.mergeRepulsors = mergeRepulsors;
+		Population.dominationExcludeFitness = dominationExcludeFitness;
 		Population.trueParetoSelection = trueParetoSelection;
+
 		individuals = new ArrayList<Individual>();
 		repulsors = new ArrayList<Individual>();
 	}
@@ -39,7 +46,7 @@ public class Population implements Serializable {
 		if (trueParetoSelection){
 			ArrayList<Integer> bestIndices = new ArrayList<Integer>();
 			bestIndices.add(0);
-			System.out.println("\t"+individuals.get(0).getRank());
+			// System.out.println("\t"+individuals.get(0).getRank());
 			int currentBestRank = individuals.get(0).getRank();
 			for (int i = 1; i < individuals.size(); i++) {
 				Individual opponent = individuals.get(i);
@@ -68,6 +75,14 @@ public class Population implements Serializable {
 				}
 			}
 		}
+		// Individual best_traditional = getBest();
+		// if (best_traditional.getId() != best.getId()) {
+		// 	Utils.log(Utils.LogTag.LOG, "NSGA II selected " + best.getId()
+		// 			+ " while traditionally " + best_traditional.getId() + " would have been chosen.");
+		// 	//for (Individual ind : individuals){
+		// 	//	Utils.log(Utils.LogTag.LOG, ""+ind.getId()+";"+ind.getTrainingError()+";"+ind.getRank());
+		// 	//}
+		// }
 		return best;
 	}
 
@@ -108,6 +123,38 @@ public class Population implements Serializable {
 		}
 		return arr;
 	}
+
+
+	// return least overfitting individual
+	public Individual getLeastOverfitting() {
+		Individual leastOverfitting = individuals.get(0);
+		for (int i = 1; i < individuals.size(); i++){
+			if (individuals.get(i).getOverfitSeverity() < leastOverfitting.getOverfitSeverity())
+				leastOverfitting = individuals.get(i);
+		}
+		return leastOverfitting;
+	}
+
+	// return best individual on training that is not overfitting
+	public Individual getBestNotOverfitting() {
+		try {
+			Individual best = null;
+			for (int i = 0; i < individuals.size(); i++) {
+				if (!individuals.get(i).getIsOverfitting()) {
+					if (best == null)
+						best = individuals.get(i);
+					else if (individuals.get(i).getTrainingError() < best.getTrainingError())
+						best = individuals.get(i);
+				}
+			}
+			if (best == null)
+				best = getLeastOverfitting();
+			return best;
+		} catch (Exception e){
+			return getBest();
+		}
+	}
+
 
 	public Individual getWorst(String dataname) {
 		return individuals.get(getWorstIndex(dataname));
@@ -277,7 +324,7 @@ public class Population implements Serializable {
 	public void nsgaIISort(boolean aggregateRepulsors){
 		// check if there are repulsors to work with
 		if (repulsors.size() == 0){
-			// System.out.println("Skipping NSGA II Sort due to empty list of repulsors.");
+			Utils.log(Utils.LogTag.LOG, "Skipping NSGA II Sort due to no repulsors being recorded.");
 			return;
 		}
 
@@ -285,6 +332,16 @@ public class Population implements Serializable {
 		ArrayList<Integer> dominationFront = new ArrayList<Integer>(); // containing the indexes of the current front
 		int[] dominationCounts = new int[individuals.size()];	// for each individual the number of individuals that dominate it are saved here
 		Object[] dominatedIndividuals = new Object[individuals.size()]; // for each individual all indexes of individuals that it dominates are saved here
+
+		for (int i = 0; i < individuals.size(); i++){
+			//System.out.println("Individual: "+individuals.get(i).getId());
+			//System.out.println("Fitness: "+individuals.get(i).getTrainingError());
+			//System.out.println("Distances:");
+			for (int r = 0; r < repulsors.size(); r++){
+				//Individual repulsor = repulsors.get(r);
+				//System.out.println(individuals.get(i).calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs()));
+			}
+		}
 
 		performFastNonDominationSort(dominationFront, dominationCounts, dominatedIndividuals, aggregateRepulsors);
 
@@ -309,6 +366,8 @@ public class Population implements Serializable {
 				// determine domination of i over j, or vice versa based on fitness and all repulsor distances
 				boolean iDominatesJ = this.dominates(individuals.get(i), individuals.get(j), aggregateRepulsors);
 				boolean jDominatesI = this.dominates(individuals.get(j), individuals.get(i), aggregateRepulsors);
+				if (iDominatesJ && jDominatesI)
+					System.exit(-1);
 				// update datastructures
 				if (iDominatesJ) // add j to set of dominated solutions of i
 					dInds.add(j);
@@ -363,6 +422,9 @@ public class Population implements Serializable {
 			avgDistJ += d_j;
 			if (d_j == 0)
 				jIsRepulsor = true;
+			if (Population.dominationExcludeFitness && r == 0) {
+				iDominatesJ = d_i > d_j; // reset to not use fitness
+			}
 			iDominatesJ = (iDominatesJ && d_i > d_j);
 		}
 		// check (if aggregation should be used) whether i is in average further away from repulsors
@@ -376,6 +438,8 @@ public class Population implements Serializable {
 			iDominatesJ = false;
 		} else if (!iIsRepulsor && jIsRepulsor){
 			iDominatesJ = true;
+		} else if (iIsRepulsor && jIsRepulsor){
+			iDominatesJ = false;
 		}
 
 		return iDominatesJ;

@@ -35,6 +35,8 @@ public class Main {
 	public static boolean AGGREGATE_REPULSORS = true;
 	public static boolean FORCE_AVOID_REPULSORS = false;
 	public static double EQUALITY_DELTA = 0;
+	public static boolean DOMINATION_EXCLUDE_FITNESS = false;
+	public static boolean MERGE_REPULSORS = false;
 
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
@@ -76,6 +78,8 @@ public class Main {
 		Utils.log(Utils.LogTag.LOG, "\tforce_avoid_repulsors=" + FORCE_AVOID_REPULSORS);
 		Utils.log(Utils.LogTag.LOG, "\tequality_delta=" + EQUALITY_DELTA);
 		Utils.log(Utils.LogTag.LOG, "\ttrue_pareto_selection=" + TRUE_PARETO_SELECTION);
+		Utils.log(Utils.LogTag.LOG, "\tdomination_exclude_fitness=" + DOMINATION_EXCLUDE_FITNESS);
+		Utils.log(Utils.LogTag.LOG, "\tmerge_repulsors=" + MERGE_REPULSORS);
 
 		if (LOG_SEMANTICS)
 			Utils.attachLogger(""+startTime, Utils.LogTag.SEMANTICS);
@@ -113,6 +117,8 @@ public class Main {
 			gp.setAggregateRepulsors(AGGREGATE_REPULSORS);
 			gp.setForceAvoidRepulsors(FORCE_AVOID_REPULSORS);
 			gp.setEqualityDelta(EQUALITY_DELTA);
+			gp.setDominationExcludeFitness(DOMINATION_EXCLUDE_FITNESS);
+			gp.setMergeRepulsors(MERGE_REPULSORS);
 
 			gp.initialize();
 
