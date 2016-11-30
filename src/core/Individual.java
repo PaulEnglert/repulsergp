@@ -26,6 +26,7 @@ public class Individual implements Serializable {
 
 	// repulser data
 	protected double overfitSeverity;
+	protected boolean isMerged = false;
 
 	public boolean getIsOverfitting() {
 		return isOverfitting;
@@ -56,12 +57,16 @@ public class Individual implements Serializable {
 	}
 
 	public void evaluate(Data data) {
+		if (isMerged)
+			return;
 		evaluateOnTrainingData(data);
 		evaluateOnValidationData(data);
 		evaluateOnUnseenData(data);
 	}
 
 	public double[] evaluateOnTrainingData(Data data) {
+		if (isMerged)
+			return trainingDataOutputs;
 		double[][] trainingData = data.getTrainingData();
 		if (sizeOverride == false) {
 			trainingDataOutputs = evaluate(trainingData);
@@ -71,6 +76,8 @@ public class Individual implements Serializable {
 	}
 
 	public double[] evaluateOnValidationData(Data data) {
+		if (isMerged)
+			return validationDataOutputs;
 		double[][] validationData = data.getValidationData();
 		if (validationData == null){
 			validationError = Double.NaN;
@@ -84,6 +91,8 @@ public class Individual implements Serializable {
 	}
 
 	public double[] evaluateOnUnseenData(Data data) {
+		if (isMerged)
+			return unseenDataOutputs;
 		double[][] unseenData = data.getUnseenData();
 		if (sizeOverride == false) {
 			unseenDataOutputs = evaluate(unseenData);
@@ -187,6 +196,24 @@ public class Individual implements Serializable {
 				d += (dataPointVal[i-dataPointTrain.length]-this.validationDataOutputs[i-dataPointTrain.length])*(dataPointVal[i-dataPointTrain.length]-this.validationDataOutputs[i-dataPointTrain.length]);
 		}
 		return Math.sqrt(d / dataPointTrain.length+dataPointVal.length);
+	}
+
+	public void mergeWith(Individual ind){
+		isMerged = true;
+		this.trainingError = (this.trainingError + ind.getTrainingError())/2;
+		this.validationError = (this.validationError + ind.getValidationError())/2;
+		this.unseenError = (this.unseenError + ind.getUnseenError())/2;
+		this.overfitSeverity =( this.overfitSeverity + ind.getOverfitSeverity() )/ 2;
+		// update semantics
+		for (int s = 0; s < trainingDataOutputs.length; s++){
+			trainingDataOutputs[s] = (trainingDataOutputs[s]+ind.getTrainingDataOutputs()[s])/2;
+		}
+		for (int s = 0; s < validationDataOutputs.length; s++){
+			validationDataOutputs[s] = (validationDataOutputs[s]+ind.getValidationDataOutputs()[s])/2;
+		}
+		for (int s = 0; s < unseenDataOutputs.length; s++){
+			unseenDataOutputs[s] = (unseenDataOutputs[s]+ind.getUnseenDataOutputs()[s])/2;
+		}
 	}
 
 	public int countElementsToEnd(int startingIndex) {

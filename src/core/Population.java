@@ -88,11 +88,40 @@ public class Population implements Serializable {
 
 	// return best individual solely based on fitness
 	public int getBestIndex() {
+		// int bestIndex = 0;
+		// double bestTrainingError = individuals.get(bestIndex).getTrainingError();
+		// for (int i = 1; i < individuals.size(); i++) {
+		// 	if (individuals.get(i).getTrainingError() < bestTrainingError) {
+		// 		bestTrainingError = individuals.get(i).getTrainingError();
+		// 		bestIndex = i;
+		// 	}
+		// }
+		// return bestIndex;
+		return getBestIndex("training");
+	}
+
+	// return best individual solely based on fitness
+	public int getBestIndex(String dataname) {
 		int bestIndex = 0;
-		double bestTrainingError = individuals.get(bestIndex).getTrainingError();
+		double bestFitness = 0;
+		if (dataname.equals("training")){
+			bestFitness = individuals.get(bestIndex).getTrainingError();
+		} else if (dataname.equals("validation")){
+			bestFitness = individuals.get(bestIndex).getValidationError();
+		} else if (dataname.equals("test")){
+			bestFitness = individuals.get(bestIndex).getUnseenError();
+		}
 		for (int i = 1; i < individuals.size(); i++) {
-			if (individuals.get(i).getTrainingError() < bestTrainingError) {
-				bestTrainingError = individuals.get(i).getTrainingError();
+			double f = 0;
+			if (dataname.equals("training")){
+				f = individuals.get(i).getTrainingError();
+			} else if (dataname.equals("validation")){
+				f = individuals.get(i).getValidationError();
+			} else if (dataname.equals("test")){
+				f = individuals.get(i).getUnseenError();
+			}
+			if (f < bestFitness) {
+				bestFitness = f;
 				bestIndex = i;
 			}
 		}
@@ -216,6 +245,21 @@ public class Population implements Serializable {
 		return avg/individuals.size();
 	}
 
+	public double getStandardDeviation(String dataname){
+		double[] values = new double[individuals.size()];
+		for (int i = 0; i < individuals.size(); i++){
+			double f = 0;
+			if (dataname.equals("training")){
+				values[i] = individuals.get(i).getTrainingError();
+			} else if (dataname.equals("validation")){
+				values[i] = individuals.get(i).getValidationError();
+			} else if (dataname.equals("test")){
+				values[i] = individuals.get(i).getUnseenError();
+			}
+		}
+		return Utils.getStdDev(values);
+	}
+
 	public void calculateMaxDistance(){
 		double maxD = 0;
 		double cMaxD = 0;
@@ -281,7 +325,10 @@ public class Population implements Serializable {
 		return individuals.get(index);
 	}
 
-	public boolean addRepulsor(Individual newRepulsor, int maxNum) {
+	public boolean addRepulsor(Individual newRepulsor, int maxNum, boolean ignoreSeverity) {
+		return addRepulsor(newRepulsor, maxNum, ignoreSeverity, 0);
+	}
+	public boolean addRepulsor(Individual newRepulsor, int maxNum, boolean ignoreSeverity, double equalityDelta) {
 		double[] semantics = newRepulsor.getTrainingDataOutputs();
 		boolean add = true;
 		// add semantics if not already in list of repulsors
@@ -300,8 +347,13 @@ public class Population implements Serializable {
 
 		}
 		if (add){
-			if (repulsors.size() < maxNum){
+			if ((repulsors.size() < maxNum) || (maxNum < 0)){
 				repulsors.add(newRepulsor);
+				if (maxNum < 0){
+					if (mergeSimilarRepulsors(equalityDelta) > -1){ // desperate try to merge to almost equal repulsers, too keep the size down
+						Utils.log(Utils.LogTag.LOG, "\tMerged two almost equal repulsers.");
+					}
+				}
 			} else {
 				// replace the one with the best severity or do nothing
 				int b_idx = 0;
@@ -312,13 +364,48 @@ public class Population implements Serializable {
 						b_idx = r;
 					}
 				}
-				if (newRepulsor.getOverfitSeverity() < b_sev){
-					repulsors.remove(b_idx);
+				if (ignoreSeverity || newRepulsor.getOverfitSeverity() < b_sev){ // because overfit severity is the margin between median and individual, we need to check for it to be less
+					if (Population.mergeRepulsors){
+						int freed = mergeSimilarRepulsors();
+					} else {
+						repulsors.remove(b_idx);
+					}
 					repulsors.add(newRepulsor);
 				}
 			}
 		}
 		return add;
+	}
+
+	private int mergeSimilarRepulsors(){
+		return mergeSimilarRepulsors(-1);
+	}
+	private int mergeSimilarRepulsors(double maxDistance){
+		int idx1=-1;
+		int idx2=-1;
+		double d=-1;
+		for (int r1 = 0; r1 < repulsors.size()-1; r1++){
+			for (int r2 = r1+1; r2 < repulsors.size(); r2++){
+				double dist = repulsors.get(r1).calculateCombinedSemanticDistance(
+						repulsors.get(r2).getTrainingDataOutputs(), repulsors.get(r2).getValidationDataOutputs()
+					);
+				if (dist < d || d == -1){
+					idx1 = r1;
+					idx2 = r2;
+					d = dist;
+				}
+			}
+		}
+		if (idx1 != -1 && idx2 != -1 && (maxDistance < 0 || maxDistance >= d)){
+			//System.out.println("Merged repulser: "+idx1+" with "+idx2);
+			repulsors.get(idx1).mergeWith(repulsors.get(idx2));
+			repulsors.remove(idx2);
+			return idx2;
+		}
+		else {
+			System.out.println("failed merging individuals: "+idx1+", "+idx2+", d="+d);
+			return -1;
+		}
 	}
 
 	public void nsgaIISort(boolean aggregateRepulsors){

@@ -37,6 +37,8 @@ public class Main {
 	public static double EQUALITY_DELTA = 0;
 	public static boolean DOMINATION_EXCLUDE_FITNESS = false;
 	public static boolean MERGE_REPULSORS = false;
+	public static int VALIDATION_WORST_SIZE= 10;
+	public static boolean USE_VALIDATION_WORST= false;
 
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
@@ -80,6 +82,8 @@ public class Main {
 		Utils.log(Utils.LogTag.LOG, "\ttrue_pareto_selection=" + TRUE_PARETO_SELECTION);
 		Utils.log(Utils.LogTag.LOG, "\tdomination_exclude_fitness=" + DOMINATION_EXCLUDE_FITNESS);
 		Utils.log(Utils.LogTag.LOG, "\tmerge_repulsors=" + MERGE_REPULSORS);
+		Utils.log(Utils.LogTag.LOG, "\tvalidation_worst_size=" + VALIDATION_WORST_SIZE);
+		Utils.log(Utils.LogTag.LOG, "\tuse_validation_worst=" + USE_VALIDATION_WORST);
 
 		if (LOG_SEMANTICS)
 			Utils.attachLogger(""+startTime, Utils.LogTag.SEMANTICS);
@@ -119,6 +123,8 @@ public class Main {
 			gp.setEqualityDelta(EQUALITY_DELTA);
 			gp.setDominationExcludeFitness(DOMINATION_EXCLUDE_FITNESS);
 			gp.setMergeRepulsors(MERGE_REPULSORS);
+			gp.setValidationWorstSize(VALIDATION_WORST_SIZE);
+			gp.setUseValidationWorst(USE_VALIDATION_WORST);
 
 			gp.initialize();
 

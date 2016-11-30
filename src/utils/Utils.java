@@ -184,6 +184,12 @@ public class Utils {
 						case "merge_repulsors":
 							Main.MERGE_REPULSORS = (Integer.parseInt(parts[1]) == 1);
 							break;
+						case "validation_worst_size":
+							Main.VALIDATION_WORST_SIZE = Integer.parseInt(parts[1]);
+							break;
+						case "use_validation_worst":
+							Main.USE_VALIDATION_WORST = (Integer.parseInt(parts[1]) == 1);
+							break;
 					}
 				} catch (Exception e){
 					log(LogTag.LOG, "Failed reading configuration: " + line);
@@ -204,6 +210,20 @@ public class Utils {
 		}
 		return sum / values.length;
 	}
+
+	public static double getVariance(double[] values)
+    {
+        double mean = getAverage(values);
+        double temp = 0;
+        for(double a : values)
+            temp += (a-mean)*(a-mean);
+        return temp/values.length;
+    }
+
+ 	public static double getStdDev(double[] values)
+    {
+        return Math.sqrt(getVariance(values));
+    }
 
 	public static double logisticFunction(double x) {
 		return 1.0 / (1.0 + Math.exp(-x));
