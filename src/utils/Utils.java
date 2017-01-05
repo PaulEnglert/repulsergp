@@ -22,7 +22,8 @@ public class Utils {
 		FITNESSTRAIN,
 		FITNESSVALIDATION,
 		REPULSERDISTANCES,
-		LOG
+		LOG,
+		SPECIFICSEMANTICS
 	}
 
 	private static PrintWriter fsSemantics = null;
@@ -31,6 +32,7 @@ public class Utils {
 	private static PrintWriter fsFitnessval = null;
 	private static PrintWriter fslog = null;
 	private static PrintWriter fsRepulserDistances = null;
+	private static PrintWriter fsSpecificSemantics = null;
 
 	private static DecimalFormat decFormatter;
 
@@ -190,6 +192,9 @@ public class Utils {
 						case "use_validation_worst":
 							Main.USE_VALIDATION_WORST = (Integer.parseInt(parts[1]) == 1);
 							break;
+						case "use_selective_validation_elite":
+							Main.USE_SELECTIVE_VALIDATION_ELITE = (Integer.parseInt(parts[1]) == 1);
+							break;
 					}
 				} catch (Exception e){
 					log(LogTag.LOG, "Failed reading configuration: " + line);
@@ -247,6 +252,9 @@ public class Utils {
 		try{
 			fsRepulserDistances = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-repulserdistances.txt", "UTF-8");
 		} catch (Exception e){}
+		try{
+			fsSpecificSemantics = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-specificsemantics.txt", "UTF-8");
+		} catch (Exception e){}
 	}
 
 	public static void attachLogger(String stamp, LogTag logger){
@@ -276,6 +284,11 @@ public class Utils {
 					fsRepulserDistances = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-repulserdistances.txt", "UTF-8");
 				} catch (Exception e){}
 				break;
+			case SPECIFICSEMANTICS:
+				try{
+					fsSpecificSemantics = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-specificsemantics.txt", "UTF-8");
+				} catch (Exception e){}
+				break;
 			case LOG:
 				try{
 					fslog = new PrintWriter(Main.OUTPUT_DIR+"/"+stamp+"-gp.log", "UTF-8");
@@ -301,6 +314,9 @@ public class Utils {
 				break;
 			case REPULSERDISTANCES:
 				out = fsRepulserDistances;
+				break;
+			case SPECIFICSEMANTICS:
+				out = fsSpecificSemantics;
 				break;
 			case LOG:
 				out = fslog;

@@ -42,6 +42,8 @@ public class Population implements Serializable {
 
 	// return best individual based in nondomination (requires individuals to have a rank precalculated)
 	public Individual getNonDominatedBest(){
+		if (this.repulsors.size() == 0)
+			return getBest();
 		Individual best = null;
 		if (trueParetoSelection){
 			ArrayList<Integer> bestIndices = new ArrayList<Integer>();
