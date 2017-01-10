@@ -45,6 +45,8 @@ public class GpRun implements Serializable {
 	protected int validationWorstSize = 10;
 	protected boolean useValidationWorst = false;
 	protected boolean useSelectiveValidationElite = false;
+	protected int useOverfitByNSightedSteepness = 0;
+	protected boolean repulseWithValidationOnly = false;
 
 	// ##### state #####
 	protected Random randomGenerator;
@@ -52,6 +54,7 @@ public class GpRun implements Serializable {
 	protected Population population;
 	protected Population validationPool;
 	protected Individual currentBest;
+	protected double currentSteepness;
 
 	public GpRun(Data data) {
 		this.data = data;
@@ -96,6 +99,7 @@ public class GpRun implements Serializable {
 
 		randomGenerator = new Random();
 		currentGeneration = 0;
+		currentSteepness = 0;
 
 		validationPool = new Population(this.trueParetoSelection, this.dominationExcludeFitness, this.mergeRepulsors);
 
@@ -220,6 +224,7 @@ public class GpRun implements Serializable {
 			offspring.addIndividual(population.getBest());
 			if (currentGeneration >= repulsorMinAge)
 				offspring.repulsors = population.repulsors;
+			offspring.setFitnessMemory(population.getFitnessMemory());
 
 			int newReps = 0;
 			// generate a new offspring population
@@ -320,6 +325,7 @@ public class GpRun implements Serializable {
 
 			Utils.log(Utils.LogTag.LOG, "Gen "+currentGeneration+": Validation Pool Average Fitness (validation) = "+validationPool.getAverageFitness("validation"));
 			// finish generation
+			updateSteepness(currentBest);
 			printState();
 			currentGeneration++;
 		}
@@ -327,6 +333,16 @@ public class GpRun implements Serializable {
 		Utils.log(Utils.LogTag.LOG, "Finished Evolution");
 	}
 
+	protected void updateSteepness(Individual toadd){
+		population.addToMemory(toadd);
+		if (currentGeneration > useOverfitByNSightedSteepness){
+			double[] trainfitnesses = new double[this.useOverfitByNSightedSteepness];
+			for (int i = 0; i < this.useOverfitByNSightedSteepness; i++){
+				trainfitnesses[i] = population.getFitnessMemory().get(i)[0];
+			}
+			currentSteepness = Utils.calculateSteepness(trainfitnesses);
+		}
+	}
 	protected void printState() {
 		Individual blindBest = population.getBest();
 		if (printAtEachGeneration) {
@@ -488,7 +504,7 @@ public class GpRun implements Serializable {
 				return individual.getValidationError() > validationPool.getMedianFitness("validation");
 			else
 				return individual.getValidationError() > validationPool.getAverageFitness("validation");
-		} else {
+		} else if (useOverfitByNSightedSteepness == 0){
 			// check if equal to median/average of validation worst (equal is within 1.5 standard deviations)
 			double threshold = 0;
 			double std = validationPool.getStandardDeviation("validation");
@@ -501,7 +517,26 @@ public class GpRun implements Serializable {
 				//return individual.getValidationError() > validationPool.getAverageFitness("validation");
 			
 			return (Math.abs(threshold - individual.getValidationError()) < 1.5*std);
+		} else if (useOverfitByNSightedSteepness > 0){
+			if (currentGeneration <= useOverfitByNSightedSteepness) // escape if not enough individuals have been collected yet
+				return false;
+			// overfit by steepness:
+			// if steepness is changed & individuals validation fitness is worse than median/average
+			// of previous n generations, it is overfitting, otherwhise no
+			// get fitnesses except for the oldest
+			double[] trainfitnesses = new double[this.useOverfitByNSightedSteepness];
+			double[] valfitnesses = new double[this.useOverfitByNSightedSteepness];
+			for (int i = 1; i < this.useOverfitByNSightedSteepness; i++){
+				trainfitnesses[i] = population.getFitnessMemory().get(i)[0];
+				valfitnesses[i-1] = population.getFitnessMemory().get(i-1)[1];
+			}
+			valfitnesses[this.useOverfitByNSightedSteepness-1] = population.getFitnessMemory().get(this.useOverfitByNSightedSteepness-1)[1];
+			// add to test individual at the newest position
+			trainfitnesses[this.useOverfitByNSightedSteepness-1] = individual.getTrainingError();
+			double steepness = Utils.calculateSteepness(trainfitnesses);
+			return (steepness-currentSteepness > 0.1 && individual.getValidationError() > Utils.getAverage(valfitnesses));
 		}
+		return false;
 	}
 
 	protected boolean isEqualToAnyRepulsor(Individual ind){
@@ -524,7 +559,7 @@ public class GpRun implements Serializable {
 			else
 				valFit = validationPool.getAverageFitness("validation");
 			return valFit-individual.getValidationError();
-		} else {
+		} else if (useOverfitByNSightedSteepness == 0){
 			double threshold = 0;
 			double std = validationPool.getStandardDeviation("validation");
 			if (overfitByMedian)
@@ -535,7 +570,21 @@ public class GpRun implements Serializable {
 			
 			return (threshold - individual.getValidationError())/(1.5*std);
 			// return -1 * individual.getValidationError();
+		} else if (useOverfitByNSightedSteepness > 0){
+			// difference in steepness
+			double[] trainfitnesses = new double[this.useOverfitByNSightedSteepness];
+			//double[] valfitnesses = double[this.useOverfitByNSightedSteepness];
+			for (int i = 1; i < this.useOverfitByNSightedSteepness; i++){
+				trainfitnesses[i] = population.getFitnessMemory().get(i)[0];
+				//valfitnesses[i] = population.getFitnessMemory().get(i)[1];
+			}
+			// add to test individual at the newest position
+			trainfitnesses[this.useOverfitByNSightedSteepness-1] = individual.getTrainingError();
+			//valfitnesses[this.useOverfitByNSightedSteepness-1] = individual.getValidationError();
+			double steepness = Utils.calculateSteepness(trainfitnesses);
+			return (steepness-currentSteepness);
 		}
+		return 0;
 	}
 
 	// ##### get's and set's from here on #####
@@ -689,5 +738,13 @@ public class GpRun implements Serializable {
 	};
 	public void setUseSelectiveValidationElite(boolean flag){
 		this.useSelectiveValidationElite = flag;
+	};
+	public void setUseOverfitByNSightedSteepness(int n){
+		this.useOverfitByNSightedSteepness = n;
+		Population.setFitnessMemory(n);
+	};
+	public void setRepulseWithValidationOnly(boolean flag){
+		this.repulseWithValidationOnly = flag;
+		Population.setRepulseWithValidationOnly(flag);
 	};
 }

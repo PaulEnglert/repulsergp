@@ -14,10 +14,15 @@ public class Population implements Serializable {
 	protected static boolean trueParetoSelection = false;
 	protected static boolean mergeRepulsors = false;
 	protected static boolean dominationExcludeFitness = false;
+	protected static int fitnessMemorySize = 0;
+	protected static boolean repulseWithValidationOnly = false;
 
 	protected ArrayList<Individual> individuals;
 
 	protected ArrayList<Individual> repulsors;
+
+	// list of n previous fitness values [training, validation], sorted that the element index 0 is the oldest
+	protected ArrayList<Double[]> fitnessMemory;
 
 	protected double maximumDistance;
 	protected double combinedMaximumDistance;
@@ -29,10 +34,19 @@ public class Population implements Serializable {
 
 		individuals = new ArrayList<Individual>();
 		repulsors = new ArrayList<Individual>();
+		fitnessMemory = new ArrayList<Double[]>();
 	}
 	public Population() {
 		individuals = new ArrayList<Individual>();
 		repulsors = new ArrayList<Individual>();
+		fitnessMemory = new ArrayList<Double[]>();
+	}
+
+	public static void setFitnessMemory(int n){
+		Population.fitnessMemorySize = n; 
+	}
+	public static void setRepulseWithValidationOnly(boolean flag){
+		Population.repulseWithValidationOnly = flag; 
 	}
 
 	// return best individual solely based on fitness
@@ -291,6 +305,21 @@ public class Population implements Serializable {
 		this.combinedMaximumDistance = cMaxD;
 	}
 
+	public void addToMemory(Individual individual){
+		if (Population.fitnessMemorySize == 0) return;
+		this.fitnessMemory.add(new Double[]{individual.getTrainingError(), individual.getValidationError()});
+		while (this.fitnessMemory.size() > fitnessMemorySize){
+			this.fitnessMemory.remove(0);
+		}
+	}
+
+	public ArrayList<Double[]> getFitnessMemory(){
+		return this.fitnessMemory;
+	}
+	public void setFitnessMemory(ArrayList<Double[]> fm){
+		this.fitnessMemory = fm;
+	}
+
 	public void addIndividual(Individual individual) {
 		individuals.add(individual);
 	}
@@ -502,12 +531,19 @@ public class Population implements Serializable {
 		for (int r = 0; r < repulsors.size(); r++){
 			Individual repulsor = repulsors.get(r);
 			// double d_i = i.calculateTrainingSemanticDistance(r.getTrainingDataOutputs());
-			double d_i = i.calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs());
+			double d_i, d_j;
+			if (Population.repulseWithValidationOnly)
+				d_i = i.calculateValidationSemanticDistance(repulsor.getValidationDataOutputs());
+			else
+				d_i = i.calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs());
 			avgDistI += d_i;
 			if (d_i == 0)
 				iIsRepulsor = true;
 			// double d_j = j.calculateTrainingSemanticDistance(r.getTrainingDataOutputs());
-			double d_j = j.calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs());
+			if (Population.repulseWithValidationOnly)
+				d_j = j.calculateValidationSemanticDistance(repulsor.getValidationDataOutputs());
+			else
+				d_j = j.calculateCombinedSemanticDistance(repulsor.getTrainingDataOutputs(), repulsor.getValidationDataOutputs());
 			avgDistJ += d_j;
 			if (d_j == 0)
 				jIsRepulsor = true;

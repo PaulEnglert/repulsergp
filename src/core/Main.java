@@ -40,6 +40,8 @@ public class Main {
 	public static int VALIDATION_WORST_SIZE= 10;
 	public static boolean USE_VALIDATION_WORST= false;
 	public static boolean USE_SELECTIVE_VALIDATION_ELITE = false;
+	public static int OVERFIT_BY_N_SIGHTED_STEEPNESS = 0;
+	public static boolean REPULSE_WITH_VALIDATION_ONLY = false;
 
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
@@ -86,6 +88,9 @@ public class Main {
 		Utils.log(Utils.LogTag.LOG, "\tvalidation_worst_size=" + VALIDATION_WORST_SIZE);
 		Utils.log(Utils.LogTag.LOG, "\tuse_validation_worst=" + USE_VALIDATION_WORST);
 		Utils.log(Utils.LogTag.LOG, "\tuse_selective_validation_elite=" + USE_SELECTIVE_VALIDATION_ELITE);
+		Utils.log(Utils.LogTag.LOG, "\toverfit_by_n_sighted_steepness=" + OVERFIT_BY_N_SIGHTED_STEEPNESS);
+		Utils.log(Utils.LogTag.LOG, "\trepulse_with_validation_only=" + REPULSE_WITH_VALIDATION_ONLY);
+
 
 		if (LOG_SEMANTICS)
 			Utils.attachLogger(""+startTime, Utils.LogTag.SEMANTICS);
@@ -128,6 +133,8 @@ public class Main {
 			gp.setValidationWorstSize(VALIDATION_WORST_SIZE);
 			gp.setUseValidationWorst(USE_VALIDATION_WORST);
 			gp.setUseSelectiveValidationElite(USE_SELECTIVE_VALIDATION_ELITE);
+			gp.setUseOverfitByNSightedSteepness(OVERFIT_BY_N_SIGHTED_STEEPNESS);
+			gp.setRepulseWithValidationOnly(REPULSE_WITH_VALIDATION_ONLY);
 
 			gp.initialize();
 

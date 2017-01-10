@@ -187,6 +187,14 @@ public class Individual implements Serializable {
 		return Math.sqrt(d / this.trainingDataOutputs.length);
 	}
 
+	public double calculateValidationSemanticDistance(double[] dataPoint){
+		double d = 0;
+		for (int i = 0; i < this.validationDataOutputs.length; i++){
+			d += (dataPoint[i]-this.validationDataOutputs[i])*(dataPoint[i]-this.validationDataOutputs[i]);
+		}
+		return Math.sqrt(d / this.validationDataOutputs.length);
+	}
+
 	public double calculateCombinedSemanticDistance(double[] dataPointTrain, double[] dataPointVal){
 		double d = 0;
 		for (int i = 0; i < dataPointTrain.length+dataPointVal.length; i++){

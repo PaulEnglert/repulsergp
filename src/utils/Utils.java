@@ -195,6 +195,12 @@ public class Utils {
 						case "use_selective_validation_elite":
 							Main.USE_SELECTIVE_VALIDATION_ELITE = (Integer.parseInt(parts[1]) == 1);
 							break;
+						case "overfit_by_n_sighted_steepness":
+							Main.OVERFIT_BY_N_SIGHTED_STEEPNESS = Integer.parseInt(parts[1]);
+							break;
+						case "repulse_with_validation_only":
+							Main.REPULSE_WITH_VALIDATION_ONLY = (Integer.parseInt(parts[1]) == 1);
+							break;
 					}
 				} catch (Exception e){
 					log(LogTag.LOG, "Failed reading configuration: " + line);
@@ -217,18 +223,18 @@ public class Utils {
 	}
 
 	public static double getVariance(double[] values)
-    {
-        double mean = getAverage(values);
-        double temp = 0;
-        for(double a : values)
-            temp += (a-mean)*(a-mean);
-        return temp/values.length;
-    }
+	{
+		double mean = getAverage(values);
+		double temp = 0;
+		for(double a : values)
+			temp += (a-mean)*(a-mean);
+		return temp/values.length;
+	}
 
- 	public static double getStdDev(double[] values)
-    {
-        return Math.sqrt(getVariance(values));
-    }
+	public static double getStdDev(double[] values)
+	{
+		return Math.sqrt(getVariance(values));
+	}
 
 	public static double logisticFunction(double x) {
 		return 1.0 / (1.0 + Math.exp(-x));
@@ -366,4 +372,31 @@ public class Utils {
 		else
 			return s;
 	}
+
+	public static double calculateSteepness(double[] y){
+		// linear regression: http://introcs.cs.princeton.edu/java/97data/LinearRegression.java.html
+		int n = y.length;
+		double[] x = new double[n];
+		double sumx = 0.0;
+		double sumy = 0.0;
+		for (int i = 1; i <= n; i++){
+			x[i-1] = i;
+			sumx += x[i-1];
+			sumy += y[i-1];
+		}
+
+        double xbar = sumx / n;
+        double ybar = sumy / n;
+		double xxbar = 0.0, yybar = 0.0, xybar = 0.0;
+		for (int i = 0; i < n; i++) {
+			xxbar += (x[i] - xbar) * (x[i] - xbar);
+			yybar += (y[i] - ybar) * (y[i] - ybar);
+			xybar += (x[i] - xbar) * (y[i] - ybar);
+		}
+		double beta1 = xybar / xxbar;
+		double beta0 = ybar - beta1 * xbar;
+		//y = beta1*x + beta0);
+		return beta0;
+	}
+
 }
