@@ -44,16 +44,7 @@ public class Utils {
 		if (validationSetSize > 0){
 			// shuffle data set
 			if (shuffleValidationSplit){
-				int currentIndex = trainingData.length;
-				double[] temporaryValue;
-				int randomIndex;
-				while (currentIndex != 0) {
-					randomIndex = (int)Math.floor(Math.random() * currentIndex);
-					currentIndex -= 1;
-					temporaryValue = trainingData[currentIndex];
-					trainingData[currentIndex] = trainingData[randomIndex];
-					trainingData[randomIndex] = temporaryValue;
-				}
+				trainingData = shuffle(trainingData);
 			}
 			// split data set
 			int numTrainInstances = (int)Math.ceil(trainingData.length*(1-validationSetSize));
@@ -63,9 +54,37 @@ public class Utils {
 			log(LogTag.LOG, "\n\tRead training data from "+dataTrainFilename+" with "+trainingData.length+" instances");
 			log(LogTag.LOG, "\tRead test data from " + dataTestFilename+ " with "+unseenData.length+" instances");
 			log(LogTag.LOG, "\tSplit original trainingset (" + trainingData.length + " instances) by "+validationSetSize+" into " + trainingNewData.length + " training instances and " + validationData.length + " validation instances.");
-			return new Data(trainingNewData, validationData, unseenData);
+			Data data = new Data(trainingNewData, validationData, unseenData);
+			data.setCompleteTrainingData(trainingData);
+			return data;
 		}
 		return new Data(trainingData, unseenData);
+	}
+
+	public static double[][] shuffle(double[][] data){
+		int currentIndex = data.length;
+		double[] temporaryValue;
+		int randomIndex;
+		while (currentIndex != 0) {
+			randomIndex = (int)Math.floor(Math.random() * currentIndex);
+			currentIndex -= 1;
+			temporaryValue = data[currentIndex];
+			data[currentIndex] = data[randomIndex];
+			data[randomIndex] = temporaryValue;
+		}
+		return data;
+	}
+
+	public static Data remakeValidation(Data data, boolean reshuffle, double valSetSize, double subsetSize){
+		double[][] td = data.getCompleteTrainingData();
+		int valsize = (int)Math.floor(data.getCompleteTrainingData().length*subsetSize*valSetSize);
+		int trainsize = (int)Math.floor(data.getCompleteTrainingData().length*subsetSize*(1-valSetSize));
+		if (reshuffle){
+			td = shuffle(td);
+		}
+		data.setTrainingData(Arrays.copyOfRange(td, 0, trainsize));
+		data.setValidationData(Arrays.copyOfRange(td, trainsize, valsize+trainsize));
+		return data;
 	}
 
 	public static double[][] readData(String filename) {
@@ -200,6 +219,9 @@ public class Utils {
 							break;
 						case "repulse_with_validation_only":
 							Main.REPULSE_WITH_VALIDATION_ONLY = (Integer.parseInt(parts[1]) == 1);
+							break;
+						case "divide_and_reshuffle":
+							Main.DIVIDE_AND_RESHUFFLE = Integer.parseInt(parts[1]);
 							break;
 					}
 				} catch (Exception e){

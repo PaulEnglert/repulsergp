@@ -42,6 +42,7 @@ public class Main {
 	public static boolean USE_SELECTIVE_VALIDATION_ELITE = false;
 	public static int OVERFIT_BY_N_SIGHTED_STEEPNESS = 0;
 	public static boolean REPULSE_WITH_VALIDATION_ONLY = false;
+	public static int DIVIDE_AND_RESHUFFLE = 0;
 
 	public static void main(String[] args) {
 		Long startTime = System.currentTimeMillis();
@@ -90,6 +91,7 @@ public class Main {
 		Utils.log(Utils.LogTag.LOG, "\tuse_selective_validation_elite=" + USE_SELECTIVE_VALIDATION_ELITE);
 		Utils.log(Utils.LogTag.LOG, "\toverfit_by_n_sighted_steepness=" + OVERFIT_BY_N_SIGHTED_STEEPNESS);
 		Utils.log(Utils.LogTag.LOG, "\trepulse_with_validation_only=" + REPULSE_WITH_VALIDATION_ONLY);
+		Utils.log(Utils.LogTag.LOG, "\tdivide_and_reshuffle=" + DIVIDE_AND_RESHUFFLE);
 
 
 		if (LOG_SEMANTICS)
@@ -135,6 +137,8 @@ public class Main {
 			gp.setUseSelectiveValidationElite(USE_SELECTIVE_VALIDATION_ELITE);
 			gp.setUseOverfitByNSightedSteepness(OVERFIT_BY_N_SIGHTED_STEEPNESS);
 			gp.setRepulseWithValidationOnly(REPULSE_WITH_VALIDATION_ONLY);
+			gp.setDivideAndReshuffle(DIVIDE_AND_RESHUFFLE);
+			gp.setValidationSetSize(VALIDATION_SET_SIZE);
 
 			gp.initialize();
 

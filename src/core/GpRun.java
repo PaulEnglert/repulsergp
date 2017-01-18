@@ -47,6 +47,8 @@ public class GpRun implements Serializable {
 	protected boolean useSelectiveValidationElite = false;
 	protected int useOverfitByNSightedSteepness = 0;
 	protected boolean repulseWithValidationOnly = false;
+	protected int divideAndReshuffle = 0;
+	protected double validationSetSize = 0;
 
 	// ##### state #####
 	protected Random randomGenerator;
@@ -216,10 +218,22 @@ public class GpRun implements Serializable {
 
 	public void evolve(int numberOfGenerations) {
 		Utils.log(Utils.LogTag.LOG, "Starting Evolution (" + numberOfGenerations +" Generations)");
+
 		// evolve for a given number of generations
 		while (currentGeneration <= numberOfGenerations) {
 			System.out.println("Generation " + currentGeneration);
 			Utils.log(Utils.LogTag.LOG, "Generation " + currentGeneration);
+			// shuffle and divide
+			if (divideAndReshuffle > 0 && (currentGeneration == 1 || currentGeneration % divideAndReshuffle == 0)){
+				data = Utils.remakeValidation(data, true, validationSetSize, 0.8);
+				// reevaluate population
+				for (int i = 0; i < population.getSize(); i++){
+					population.getIndividual(i).evaluate(data);
+				}
+				Utils.log(Utils.LogTag.LOG,"Remade Validation Data: "+data.getTrainingData().length+" Training Instances " + data.getValidationData().length+" Validation Instances");
+			}
+
+
 			Population offspring = new Population(this.trueParetoSelection, this.dominationExcludeFitness, this.mergeRepulsors);
 			offspring.addIndividual(population.getBest());
 			if (currentGeneration >= repulsorMinAge)
@@ -746,5 +760,11 @@ public class GpRun implements Serializable {
 	public void setRepulseWithValidationOnly(boolean flag){
 		this.repulseWithValidationOnly = flag;
 		Population.setRepulseWithValidationOnly(flag);
+	};
+	public void setDivideAndReshuffle(int n){
+		this.divideAndReshuffle = n;
+	};
+	public void setValidationSetSize(double n){
+		this.validationSetSize = n;
 	};
 }
